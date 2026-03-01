@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from typing import List, Optional
 from app.database import get_db
 from app.models import Topic, DiscourseTrack, ArgumentNode, User
-from app.schemas import TopicCreate, TopicUpdate, TopicOut, TrackCreate, TrackOut, BriefingData, ArgumentNodeOut
+from app.schemas import TopicCreate, TopicUpdate, TopicOut, TrackCreate, TrackOut, BriefingData, CatchUpData, ContributionOpportunity, ArgumentNodeOut
 from app.models import TopicStatus
 from app.auth import get_current_user, get_optional_user
 from app.services import ai_service
@@ -254,4 +254,83 @@ def get_briefing(topic_id: str, db: Session = Depends(get_db)):
         ai_powered=ai_data.get("ai_powered", False),
         main_areas_of_contention=ai_data.get("main_areas_of_contention", []),
         what_has_been_left_unaddressed=ai_data.get("what_has_been_left_unaddressed", ""),
+    )
+
+
+# ── Catch-Up Briefing ────────────────────────────────────────────────────────
+
+@router.get("/{topic_id}/catch-up", response_model=CatchUpData)
+def get_catch_up(
+    topic_id: str,
+    db: Session = Depends(get_db),
+    current_user: Optional[User] = Depends(get_optional_user),
+):
+    topic = db.query(Topic).filter(Topic.id == topic_id).first()
+    if not topic:
+        raise HTTPException(status_code=404, detail="Topic not found")
+
+    nodes = (
+        db.query(ArgumentNode)
+        .filter(ArgumentNode.topic_id == topic_id)
+        .order_by(ArgumentNode.created_at)
+        .all()
+    )
+
+    # Determine if the user is a newcomer (no prior arguments in this topic)
+    is_newcomer = True
+    if current_user:
+        user_node_count = (
+            db.query(ArgumentNode)
+            .filter(ArgumentNode.topic_id == topic_id, ArgumentNode.author_id == current_user.id)
+            .count()
+        )
+        is_newcomer = user_node_count == 0
+
+    nodes_summary = [
+        {"node_type": n.node_type.value, "content": n.content, "state": n.state.value}
+        for n in nodes
+    ]
+
+    # Personalize based on user expertise if available
+    user_expertise = None
+    if current_user and current_user.is_verified_expert and current_user.expert_domain:
+        user_expertise = current_user.expert_domain
+
+    ai_data = ai_service.generate_catch_up(topic.canonical_question, nodes_summary, user_expertise)
+
+    # Build contribution opportunities from AI suggestions and unaddressed nodes
+    opportunities = []
+    for sug in ai_data.get("contribution_suggestions", []):
+        # Find a matching unaddressed node to link to
+        matching_node = None
+        for n in nodes:
+            if not n.children and sug.get("suggestion", "").lower() in n.content.lower():
+                matching_node = n
+                break
+        # Fall back to the first unaddressed node of the right type
+        if not matching_node:
+            for n in nodes:
+                if not n.children:
+                    matching_node = n
+                    break
+        opportunities.append(ContributionOpportunity(
+            argument_id=matching_node.id if matching_node else "",
+            content_snippet=matching_node.content[:120] if matching_node else "",
+            opportunity_type=sug.get("opportunity_type", "gap"),
+            suggestion=sug.get("suggestion", ""),
+        ))
+
+    # Count unique participants
+    participant_ids = set(n.author_id for n in nodes)
+
+    return CatchUpData(
+        is_newcomer=is_newcomer,
+        established_points=ai_data.get("established_points", []),
+        refuted_points=ai_data.get("refuted_points", []),
+        active_debates=ai_data.get("active_debates", []),
+        contribution_opportunities=opportunities,
+        summary=ai_data.get("summary", ""),
+        total_nodes=len(nodes),
+        total_participants=len(participant_ids),
+        ai_powered=ai_data.get("ai_powered", False),
     )

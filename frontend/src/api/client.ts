@@ -121,3 +121,7 @@ export const getGraph = (topicId: string) =>
 // ── Briefing ──────────────────────────────────────────────────────────────────
 export const getBriefing = (topicId: string) =>
   api.get(`/topics/${topicId}/briefing`).then((r) => r.data)
+
+// ── Catch-Up ──────────────────────────────────────────────────────────────────
+export const getCatchUp = (topicId: string) =>
+  api.get(`/topics/${topicId}/catch-up`).then((r) => r.data)

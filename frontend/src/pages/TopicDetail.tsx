@@ -1,12 +1,14 @@
-import { useState, useMemo, useCallback } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import {
   getTopic, getBriefing, getArguments, getGraph, getTracks,
   deleteArgument, transitionArgumentState, deleteTopic, archiveTopic,
+  getCatchUp,
 } from "../api/client";
-import { ArgumentNode, BriefingData, GraphData, Topic, DiscourseTrack } from "../types";
+import { ArgumentNode, BriefingData, GraphData, Topic, DiscourseTrack, CatchUpData } from "../types";
 import { BriefingRoom } from "../components/BriefingRoom";
+import { CatchUpModal } from "../components/CatchUpModal";
 import { ArgumentCard } from "../components/ArgumentCard";
 import { SubmitArgumentForm } from "../components/SubmitArgumentForm";
 import { ExplorerSidebar } from "../components/ExplorerSidebar";
@@ -15,6 +17,7 @@ import {
   MapPin, Tag, Plus, GitBranch,
   Archive, Trash2, ArrowLeft, CheckCircle2,
   ChevronDown, ChevronRight, BookOpen, PanelLeftClose, PanelLeft,
+  Sparkles,
 } from "lucide-react";
 
 function buildChildMap(nodes: ArgumentNode[]): Map<string | null, ArgumentNode[]> {
@@ -118,6 +121,8 @@ export function TopicDetail() {
   const [toast, setToast] = useState<string | null>(null);
   const [explorerOpen, setExplorerOpen] = useState(true);
   const [briefingOpen, setBriefingOpen] = useState(true);
+  const [catchUpDismissed, setCatchUpDismissed] = useState(false);
+  const [showCatchUp, setShowCatchUp] = useState(false);
 
   const showToast = useCallback((message: string) => {
     setToast(message);
@@ -129,6 +134,11 @@ export function TopicDetail() {
   const { data: briefing } = useQuery<BriefingData>({ queryKey: ["briefing", topicId], queryFn: () => getBriefing(topicId) });
   const { data: nodes } = useQuery<ArgumentNode[]>({ queryKey: ["arguments", topicId], queryFn: () => getArguments(topicId) });
   const { data: graphData } = useQuery<GraphData>({ queryKey: ["graph", topicId], queryFn: () => getGraph(topicId) });
+  const { data: catchUpData } = useQuery<CatchUpData>({
+    queryKey: ["catch-up", topicId],
+    queryFn: () => getCatchUp(topicId),
+    enabled: !catchUpDismissed,
+  });
 
   const childMap = useMemo(() => buildChildMap(nodes ?? []), [nodes]);
   const rootNodes = useMemo(() => childMap.get(null) ?? [], [childMap]);
@@ -169,6 +179,22 @@ export function TopicDetail() {
     }, 100);
     setTimeout(() => setHighlightedId(null), 3500);
   }, []);
+
+  // Auto-show catch-up modal for newcomers
+  useEffect(() => {
+    if (catchUpData && catchUpData.is_newcomer && catchUpData.total_nodes > 0 && !catchUpDismissed) {
+      setShowCatchUp(true);
+    }
+  }, [catchUpData, catchUpDismissed]);
+
+  const handleCatchUpClose = useCallback(() => {
+    setShowCatchUp(false);
+    setCatchUpDismissed(true);
+  }, []);
+
+  const handleCatchUpNavigate = useCallback((argumentId: string) => {
+    handleExplorerNodeClick(argumentId);
+  }, [handleExplorerNodeClick]);
 
   if (!topic)
     return (
@@ -211,6 +237,12 @@ export function TopicDetail() {
               </div>
             </div>
             <div className="flex items-center gap-2 shrink-0">
+              {catchUpData && catchUpData.total_nodes > 0 && (
+                <button
+                  onClick={() => setShowCatchUp(true)}
+                  className="flex items-center gap-1 px-2.5 py-1 text-xs border border-accent/30 rounded-md text-accent hover:bg-accent/10 transition-colors"
+                ><Sparkles size={11} /> Catch Up</button>
+              )}
               {user && topic.created_by === user.id && topic.status === "active" && (
                 <button
                   onClick={() => { if (window.confirm("Archive this debate?")) archiveTopicMutation.mutate(); }}
@@ -345,6 +377,15 @@ export function TopicDetail() {
             {toast}
           </div>
         </div>
+      )}
+
+      {/* Catch-Up Modal */}
+      {showCatchUp && catchUpData && (
+        <CatchUpModal
+          catchUp={catchUpData}
+          onClose={handleCatchUpClose}
+          onNavigateToArgument={handleCatchUpNavigate}
+        />
       )}
     </div>
   );

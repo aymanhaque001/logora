@@ -233,3 +233,24 @@ class BriefingData(BaseModel):
     ai_powered: bool = False
     main_areas_of_contention: List[str] = []
     what_has_been_left_unaddressed: str = ""
+
+
+# ── Catch-Up Briefing ────────────────────────────────────────────────────────
+
+class ContributionOpportunity(BaseModel):
+    argument_id: str
+    content_snippet: str
+    opportunity_type: str  # "gap", "unchallenged_claim", "unanswered_question"
+    suggestion: str
+
+
+class CatchUpData(BaseModel):
+    is_newcomer: bool
+    established_points: List[dict]   # High-credibility, unchallenged arguments
+    refuted_points: List[dict]       # Arguments with successful rebuttals
+    active_debates: List[dict]       # Contested branches with recent activity
+    contribution_opportunities: List[ContributionOpportunity]
+    summary: str
+    total_nodes: int
+    total_participants: int
+    ai_powered: bool = False
