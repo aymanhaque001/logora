@@ -100,10 +100,10 @@ GET /api/topics
 
 **Query Parameters:**
 
-| Param    | Type   | Default | Description                                   |
-| -------- | ------ | ------- | --------------------------------------------- |
-| `tag`    | string | —       | Filter by topic tag (e.g., `economic`)        |
-| `search` | string | —       | Search in canonical question and description  |
+| Param    | Type   | Default | Description                                         |
+| -------- | ------ | ------- | --------------------------------------------------- |
+| `tag`    | string | —       | Filter by topic tag (e.g., `economic`)              |
+| `search` | string | —       | Search in canonical question and description        |
 | `status` | string | —       | Filter by status: `active`, `cooling`, `historical` |
 
 **Response:** `200 OK` — Array of `TopicOut` (max 50, sorted by newest).
@@ -314,13 +314,22 @@ AI-generated newcomer briefing with established points, refuted points, active d
 {
   "is_newcomer": true,
   "established_points": [
-    { "claim": "Displacement occurs in gentrifying areas", "basis": "Multiple studies cited..." }
+    {
+      "claim": "Displacement occurs in gentrifying areas",
+      "basis": "Multiple studies cited..."
+    }
   ],
   "refuted_points": [
-    { "claim": "All residents benefit equally", "rebuttal": "Counter-evidence shows..." }
+    {
+      "claim": "All residents benefit equally",
+      "rebuttal": "Counter-evidence shows..."
+    }
   ],
   "active_debates": [
-    { "topic": "Effectiveness of rent control", "sides": ["Prevents displacement", "Reduces housing supply"] }
+    {
+      "topic": "Effectiveness of rent control",
+      "sides": ["Prevents displacement", "Reduces housing supply"]
+    }
   ],
   "contribution_opportunities": [
     {
@@ -380,7 +389,12 @@ GET /api/topics/{topic_id}/arguments
     "ai_summary": "Evidence points to displacement in gentrifying areas",
     "created_at": "2025-01-01T00:00:00",
     "updated_at": "2025-01-01T00:00:00",
-    "author": { "id": "uuid", "username": "sarah_chen", "display_name": "Sarah Chen", "credibility_score": 82.0 },
+    "author": {
+      "id": "uuid",
+      "username": "sarah_chen",
+      "display_name": "Sarah Chen",
+      "credibility_score": 82.0
+    },
     "children_count": 3
   }
 ]
@@ -414,16 +428,17 @@ POST /api/topics/{topic_id}/arguments
 }
 ```
 
-| Field              | Required | Notes                                      |
-| ------------------ | -------- | ------------------------------------------ |
-| `content`          | Yes      | Minimum 20 characters                      |
-| `node_type`        | Yes      | One of the 8 node types                    |
-| `parent_id`        | No       | ID of parent argument (replies)            |
-| `edge_relationship`| No       | Required if `parent_id` is set             |
-| `nuance_tags`      | No       | Array of nuance tag values                 |
-| `sources`          | No       | Array of source citation objects            |
+| Field               | Required | Notes                            |
+| ------------------- | -------- | -------------------------------- |
+| `content`           | Yes      | Minimum 20 characters            |
+| `node_type`         | Yes      | One of the 8 node types          |
+| `parent_id`         | No       | ID of parent argument (replies)  |
+| `edge_relationship` | No       | Required if `parent_id` is set   |
+| `nuance_tags`       | No       | Array of nuance tag values       |
+| `sources`           | No       | Array of source citation objects |
 
 **Side Effects:**
+
 - AI classifies node type (may override user selection) and assigns to a track
 - AI generates a summary for graph display
 - Parent argument auto-transitions (`unchallenged` → `engaged`; `engaged` → `branched` if 3+ children from 2+ authors)
@@ -523,15 +538,15 @@ POST /api/topics/{topic_id}/arguments/{argument_id}/transition
 
 **State Transition Rules:**
 
-| From          | To        | Who        | Notes                           |
-| ------------- | --------- | ---------- | ------------------------------- |
-| unchallenged  | engaged   | Auto       | On first child submission       |
-| engaged       | refined   | Author     | On edit with responses          |
-| engaged       | branched  | Auto       | 3+ children from 2+ authors    |
-| engaged       | conceded  | Author     | +3.0 credibility for honesty   |
-| branched      | merged    | Any        | Terminal state                  |
-| dormant       | engaged   | Any        | Re-engagement                   |
-| any           | dormant   | System     | 30 days no activity             |
+| From         | To       | Who    | Notes                        |
+| ------------ | -------- | ------ | ---------------------------- |
+| unchallenged | engaged  | Auto   | On first child submission    |
+| engaged      | refined  | Author | On edit with responses       |
+| engaged      | branched | Auto   | 3+ children from 2+ authors  |
+| engaged      | conceded | Author | +3.0 credibility for honesty |
+| branched     | merged   | Any    | Terminal state               |
+| dormant      | engaged  | Any    | Re-engagement                |
+| any          | dormant  | System | 30 days no activity          |
 
 **Response:** `200 OK` — updated `ArgumentNodeOut`.
 
@@ -608,6 +623,7 @@ Checks whether proposed content duplicates an existing argument using vector sea
 ```
 
 **Thresholds:**
+
 - Similarity ≥ 0.75 → triggers Claude duplicate analysis
 - Without AI: similarity > 0.85 → marked as duplicate (stub fallback)
 
@@ -648,6 +664,7 @@ Ask analytical questions about a debate. Uses hybrid Graph RAG (vector search + 
 ```
 
 **Pipeline parameters:**
+
 - Vector search: top 10 results
 - Graph expansion: 2 hops, max 30 nodes
 - Context cap: 30 arguments × 400 characters each
@@ -684,11 +701,11 @@ Search recent news and suggest debate topics framed by Claude.
 
 **Query Parameters:**
 
-| Param      | Type   | Default | Description                                           |
-| ---------- | ------ | ------- | ----------------------------------------------------- |
+| Param      | Type   | Default | Description                                                       |
+| ---------- | ------ | ------- | ----------------------------------------------------------------- |
 | `category` | string | —       | `geopolitical`, `technology`, `economic`, `social`, `environment` |
-| `q`        | string | —       | Custom search query (overrides category)              |
-| `limit`    | int    | 5       | Number of suggestions (1-10)                          |
+| `q`        | string | —       | Custom search query (overrides category)                          |
+| `limit`    | int    | 5       | Number of suggestions (1-10)                                      |
 
 **Response:** `200 OK`
 
@@ -757,11 +774,11 @@ All error responses follow this format:
 
 Common HTTP status codes:
 
-| Code | Description |
-| ---- | ----------- |
+| Code | Description                                             |
+| ---- | ------------------------------------------------------- |
 | 400  | Bad request (validation error, business rule violation) |
-| 401  | Unauthorized (missing or invalid token) |
-| 403  | Forbidden (not the owner/author) |
-| 404  | Resource not found |
-| 422  | Validation error (Pydantic) |
-| 500  | Internal server error |
+| 401  | Unauthorized (missing or invalid token)                 |
+| 403  | Forbidden (not the owner/author)                        |
+| 404  | Resource not found                                      |
+| 422  | Validation error (Pydantic)                             |
+| 500  | Internal server error                                   |

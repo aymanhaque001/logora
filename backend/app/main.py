@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.database import engine, Base
-from app.routers import users, topics, arguments, suggestions
+from app.routers import users, topics, arguments, suggestions, news
 from app.config import settings
 
 # Create all tables
@@ -25,6 +25,7 @@ app.include_router(users.router)
 app.include_router(topics.router)
 app.include_router(arguments.router)
 app.include_router(suggestions.router)
+app.include_router(news.router)
 
 
 @app.get("/api/health")

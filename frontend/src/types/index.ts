@@ -201,6 +201,16 @@ export interface DebateSuggestion {
   ai_framed: boolean
 }
 
+export interface NewsArticle {
+  title: string
+  body: string
+  url: string
+  source: string
+  date: string
+  category: string
+  image?: string
+}
+
 export interface DuplicateCheckResult {
   is_duplicate: boolean
   confidence: number

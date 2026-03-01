@@ -133,6 +133,10 @@ export const getDebateSuggestions = (params?: {
   limit?: number
 }) => api.get('/suggestions', { params: params ?? {} }).then((r) => r.data)
 
+// ── News Feed ────────────────────────────────────────────────────────────────
+export const getNewsFeed = (params?: { category?: string; limit?: number }) =>
+  api.get('/news', { params: params ?? {} }).then((r) => r.data)
+
 // ── Duplicate Detection (Graph RAG) ─────────────────────────────────────────
 export const checkDuplicate = (topicId: string, content: string) =>
   api

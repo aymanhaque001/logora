@@ -12,6 +12,7 @@ Logora's RAG system is a **hybrid retrieval pipeline** that combines two complem
 2. **Graph expansion** (BFS on argument graph) — discovers structurally related arguments by traversing parent/child/edge relationships
 
 The merged results are deduplicated and fed to Claude for analysis, enabling three features:
+
 - **Duplicate Detection** — prevents rehashed arguments before submission
 - **RAG Q&A ("Ask the Debate")** — answers analytical questions about any debate
 - **Contextual Enrichment** — provides richer context for AI operations
@@ -62,27 +63,27 @@ User Query / Content
 
 ### Configuration
 
-| Setting             | Value                  |
-| ------------------- | ---------------------- |
-| Collection name     | `logora_arguments`     |
-| Embedding model     | `all-MiniLM-L6-v2`    |
-| Embedding dimensions| 384                    |
-| Distance metric     | Cosine                 |
-| Persist directory   | `./chroma_data/`       |
-| Backfill batch size | 32                     |
+| Setting              | Value              |
+| -------------------- | ------------------ |
+| Collection name      | `logora_arguments` |
+| Embedding model      | `all-MiniLM-L6-v2` |
+| Embedding dimensions | 384                |
+| Distance metric      | Cosine             |
+| Persist directory    | `./chroma_data/`   |
+| Backfill batch size  | 32                 |
 
 ### Metadata Fields
 
 Each argument is stored in ChromaDB with these metadata fields for filtering:
 
-| Field            | Type   | Description                           |
-| ---------------- | ------ | ------------------------------------- |
-| `topic_id`       | string | Parent topic ID (primary filter)      |
-| `node_type`      | string | Argument node type                    |
-| `track_id`       | string | Discourse track ID (or `"none"`)      |
-| `author_id`      | string | Author user ID                        |
-| `parent_id`      | string | Parent argument ID (or `"none"`)      |
-| `content_preview` | string | First 200 characters of content      |
+| Field             | Type   | Description                      |
+| ----------------- | ------ | -------------------------------- |
+| `topic_id`        | string | Parent topic ID (primary filter) |
+| `node_type`       | string | Argument node type               |
+| `track_id`        | string | Discourse track ID (or `"none"`) |
+| `author_id`       | string | Author user ID                   |
+| `parent_id`       | string | Parent argument ID (or `"none"`) |
+| `content_preview` | string | First 200 characters of content  |
 
 ### Functions
 
@@ -170,11 +171,11 @@ BFS graph walk starting from seed argument IDs. Discovers structurally related a
 
 **Parameters:**
 
-| Param      | Default | Description                          |
-| ---------- | ------- | ------------------------------------ |
-| `seed_ids` | —       | List of argument IDs to start from  |
-| `max_hops` | 2       | Maximum BFS depth                    |
-| `max_nodes`| 30      | Maximum total nodes to return        |
+| Param       | Default | Description                        |
+| ----------- | ------- | ---------------------------------- |
+| `seed_ids`  | —       | List of argument IDs to start from |
+| `max_hops`  | 2       | Maximum BFS depth                  |
+| `max_nodes` | 30      | Maximum total nodes to return      |
 
 **Returns:** List of dictionaries with argument data and hop distance:
 
@@ -195,6 +196,7 @@ BFS graph walk starting from seed argument IDs. Discovers structurally related a
 ```
 
 **Behavior:**
+
 - BFS ensures nearest nodes are found first
 - Stops when `max_nodes` is reached or all reachable nodes within `max_hops` are visited
 - Deduplicates internally (each node appears once, at its minimum hop distance)
@@ -298,17 +300,18 @@ Checks whether proposed argument content duplicates an existing argument.
 
 **Parameters:**
 
-| Param                  | Default | Description                              |
-| ---------------------- | ------- | ---------------------------------------- |
-| `content`              | —       | Proposed argument text                   |
-| `topic_id`             | —       | Topic to check within                    |
-| `similarity_threshold` | 0.75    | Minimum similarity to trigger analysis   |
-| `n_vector_results`     | 5       | Number of vector search results          |
-| `max_graph_hops`       | 1       | Graph expansion depth (shallow for speed)|
-| `max_total_nodes`      | 15      | Max nodes in graph expansion             |
+| Param                  | Default | Description                               |
+| ---------------------- | ------- | ----------------------------------------- |
+| `content`              | —       | Proposed argument text                    |
+| `topic_id`             | —       | Topic to check within                     |
+| `similarity_threshold` | 0.75    | Minimum similarity to trigger analysis    |
+| `n_vector_results`     | 5       | Number of vector search results           |
+| `max_graph_hops`       | 1       | Graph expansion depth (shallow for speed) |
+| `max_total_nodes`      | 15      | Max nodes in graph expansion              |
 
 **Claude Prompt:**
 Claude receives the proposed content and similar existing arguments, and is asked to:
+
 1. Determine if this is a genuine duplicate or rehash
 2. Rate confidence (0-1)
 3. Explain what overlaps
@@ -316,6 +319,7 @@ Claude receives the proposed content and similar existing arguments, and is aske
 
 **Stub Fallback (no AI):**
 When Claude is unavailable, uses a simple threshold:
+
 - Similarity > **0.85** → marked as duplicate with high confidence
 - Similarity ≤ 0.85 → marked as original
 
@@ -329,11 +333,11 @@ Answers analytical questions about a debate using the full hybrid retrieval pipe
 
 **Parameters:**
 
-| Param             | Value | Description                         |
-| ----------------- | ----- | ----------------------------------- |
-| `n_vector_results`| 10    | Broader search for Q&A              |
-| `max_graph_hops`  | 2     | Full 2-hop expansion                |
-| `max_total_nodes` | 30    | Generous node budget                |
+| Param              | Value | Description            |
+| ------------------ | ----- | ---------------------- |
+| `n_vector_results` | 10    | Broader search for Q&A |
+| `max_graph_hops`   | 2     | Full 2-hop expansion   |
+| `max_total_nodes`  | 30    | Generous node budget   |
 
 **Pipeline:**
 
@@ -354,6 +358,7 @@ Answers analytical questions about a debate using the full hybrid retrieval pipe
 ```
 
 **Suggested Queries (shown in UI):**
+
 1. "What are the main points of agreement?"
 2. "What evidence has been cited?"
 3. "What arguments remain unchallenged?"
@@ -368,41 +373,41 @@ Summary of all configurable thresholds across the RAG system:
 
 ### Vector Store
 
-| Parameter        | Value           | Location           |
-| ---------------- | --------------- | ------------------ |
-| Embedding model  | all-MiniLM-L6-v2| vector_store.py   |
-| Dimensions       | 384             | vector_store.py    |
-| Distance metric  | cosine          | vector_store.py    |
-| Batch size       | 32              | vector_store.py    |
-| Max candidates   | 50              | vector_store.py    |
+| Parameter       | Value            | Location        |
+| --------------- | ---------------- | --------------- |
+| Embedding model | all-MiniLM-L6-v2 | vector_store.py |
+| Dimensions      | 384              | vector_store.py |
+| Distance metric | cosine           | vector_store.py |
+| Batch size      | 32               | vector_store.py |
+| Max candidates  | 50               | vector_store.py |
 
 ### Duplicate Detection
 
-| Parameter              | Value | Location      |
-| ---------------------- | ----- | ------------- |
-| Similarity threshold   | 0.75  | graph_rag.py  |
-| Vector results         | 5     | graph_rag.py  |
-| Graph hops             | 1     | graph_rag.py  |
-| Max graph nodes        | 15    | graph_rag.py  |
-| Stub duplicate threshold | 0.85 | graph_rag.py |
+| Parameter                | Value | Location     |
+| ------------------------ | ----- | ------------ |
+| Similarity threshold     | 0.75  | graph_rag.py |
+| Vector results           | 5     | graph_rag.py |
+| Graph hops               | 1     | graph_rag.py |
+| Max graph nodes          | 15    | graph_rag.py |
+| Stub duplicate threshold | 0.85  | graph_rag.py |
 
 ### RAG Q&A
 
-| Parameter        | Value | Location      |
-| ---------------- | ----- | ------------- |
-| Vector results   | 10    | graph_rag.py  |
-| Graph hops       | 2     | graph_rag.py  |
-| Max graph nodes  | 30    | graph_rag.py  |
+| Parameter          | Value     | Location     |
+| ------------------ | --------- | ------------ |
+| Vector results     | 10        | graph_rag.py |
+| Graph hops         | 2         | graph_rag.py |
+| Max graph nodes    | 30        | graph_rag.py |
 | Content truncation | 400 chars | graph_rag.py |
-| Max context items | 30   | graph_rag.py  |
+| Max context items  | 30        | graph_rag.py |
 
 ### General Retrieval
 
-| Parameter        | Value | Location      |
-| ---------------- | ----- | ------------- |
-| Vector results   | 8     | graph_rag.py  |
-| Graph hops       | 2     | graph_rag.py  |
-| Max graph nodes  | 25    | graph_rag.py  |
+| Parameter       | Value | Location     |
+| --------------- | ----- | ------------ |
+| Vector results  | 8     | graph_rag.py |
+| Graph hops      | 2     | graph_rag.py |
+| Max graph nodes | 25    | graph_rag.py |
 
 ---
 
@@ -435,11 +440,11 @@ New arguments are automatically indexed in the vector store on submission (in th
 
 ## Graceful Degradation
 
-| Scenario | Behavior |
-| --- | --- |
+| Scenario             | Behavior                                                                                                                                 |
+| -------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
 | ChromaDB unavailable | `search_similar` returns `[]`, duplicate check returns `{is_duplicate: false}`, RAG query returns `{answer: "Vector store unavailable"}` |
-| Claude unavailable | Stub duplicate check uses similarity > 0.85 threshold; RAG returns context summary without AI analysis |
-| Both unavailable | Core debate features still work (arguments, graph, state machine, credibility) |
+| Claude unavailable   | Stub duplicate check uses similarity > 0.85 threshold; RAG returns context summary without AI analysis                                   |
+| Both unavailable     | Core debate features still work (arguments, graph, state machine, credibility)                                                           |
 
 The health endpoint reports availability:
 

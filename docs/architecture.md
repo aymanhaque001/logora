@@ -231,12 +231,12 @@ JWT tokens are signed with `SECRET_KEY` using the `HS256` algorithm. Tokens cont
 
 Logora is designed to work at multiple capability levels:
 
-| Level | AI | ChromaDB | DuckDuckGo | Experience |
-| --- | --- | --- | --- | --- |
-| **Full** | ✓ | ✓ | ✓ | All features: classification, briefings, RAG, duplicate detection, web suggestions |
-| **No AI** | ✗ | ✓ | ✓ | Vector search works, stubs for classification/briefing, web search with stub framing |
-| **No Vector** | ✓ | ✗ | ✓ | AI classification/briefing works, no RAG/duplicate detection, web suggestions work |
-| **Minimal** | ✗ | ✗ | ✗ | Core debate platform: graph structure, state machine, credibility, manual tracks |
+| Level         | AI  | ChromaDB | DuckDuckGo | Experience                                                                           |
+| ------------- | --- | -------- | ---------- | ------------------------------------------------------------------------------------ |
+| **Full**      | ✓   | ✓        | ✓          | All features: classification, briefings, RAG, duplicate detection, web suggestions   |
+| **No AI**     | ✗   | ✓        | ✓          | Vector search works, stubs for classification/briefing, web search with stub framing |
+| **No Vector** | ✓   | ✗        | ✓          | AI classification/briefing works, no RAG/duplicate detection, web suggestions work   |
+| **Minimal**   | ✗   | ✗        | ✗          | Core debate platform: graph structure, state machine, credibility, manual tracks     |
 
 The health endpoint (`GET /api/health`) reports the availability of each subsystem:
 
@@ -245,7 +245,11 @@ The health endpoint (`GET /api/health`) reports the availability of each subsyst
   "status": "healthy",
   "version": "0.2.0",
   "ai": { "ai_enabled": true, "model": "claude-sonnet-4-6" },
-  "vector_store": { "available": true, "collection_count": 75, "model": "all-MiniLM-L6-v2" },
+  "vector_store": {
+    "available": true,
+    "collection_count": 75,
+    "model": "all-MiniLM-L6-v2"
+  },
   "web_search": { "search_available": true, "ai_framing_available": true }
 }
 ```

@@ -14,15 +14,16 @@ import {
   Zap,
   Clock,
   Radio,
+  RefreshCw,
 } from 'lucide-react'
 
 const CATEGORY_OPTIONS = [
-  { value: '', label: 'All Topics', icon: Globe },
+  { value: '', label: 'All', icon: Globe },
   { value: 'geopolitical', label: 'Geopolitical', icon: Globe },
-  { value: 'technology', label: 'Technology', icon: Zap },
+  { value: 'technology', label: 'Tech', icon: Zap },
   { value: 'economic', label: 'Economic', icon: Sparkles },
   { value: 'social', label: 'Social', icon: Globe },
-  { value: 'environment', label: 'Environment', icon: Globe },
+  { value: 'environment', label: 'Environ.', icon: Globe },
 ]
 
 const TIMELINESS_ICON: Record<string, typeof Clock> = {
@@ -63,7 +64,7 @@ export function DebateSuggestions() {
         q: customQuery || undefined,
         limit: 6,
       }),
-    staleTime: 5 * 60 * 1000, // Cache for 5 min
+    staleTime: 5 * 60 * 1000,
     enabled: true,
   })
 
@@ -101,46 +102,55 @@ export function DebateSuggestions() {
   }
 
   return (
-    <div className='space-y-4'>
+    <div className='space-y-3'>
       {/* Header */}
-      <div className='flex items-center gap-2'>
-        <Newspaper size={16} className='text-accent' />
-        <h2 className='text-sm font-semibold text-text-primary'>
-          Suggested Debates from the News
-        </h2>
-        {data?.status?.search_available && (
-          <span className='flex items-center gap-1 ml-auto text-[10px] text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded'>
-            <span className='w-1.5 h-1.5 rounded-full bg-emerald-400' />
-            Live
-          </span>
-        )}
+      <div className='flex items-center justify-between'>
+        <div className='flex items-center gap-2'>
+          <Newspaper size={14} className='text-accent' />
+          <h2 className='text-sm font-semibold text-text-primary'>
+            Suggested Debates
+          </h2>
+          {data?.status?.search_available && (
+            <span className='flex items-center gap-1 text-[10px] text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded'>
+              <span className='w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse' />
+              Live
+            </span>
+          )}
+        </div>
+        <button
+          onClick={() => refetch()}
+          disabled={isFetching}
+          className='p-1.5 text-text-tertiary hover:text-accent transition disabled:opacity-50'
+          title='Refresh'
+        >
+          <RefreshCw size={13} className={isFetching ? 'animate-spin' : ''} />
+        </button>
       </div>
 
-      {/* Search & Filters */}
-      <div className='flex items-center gap-2'>
-        <form onSubmit={handleSearch} className='flex-1 flex gap-2'>
-          <div className='relative flex-1'>
-            <Search
-              size={13}
-              className='absolute left-2.5 top-1/2 -translate-y-1/2 text-text-tertiary'
-            />
-            <input
-              value={searchInput}
-              onChange={(e) => setSearchInput(e.target.value)}
-              placeholder='Search for a topic to debate...'
-              className='input-field pl-8 py-2 text-xs'
-            />
-          </div>
-          <button
-            type='submit'
-            className='btn-secondary px-3 py-2 text-xs rounded-lg'
-          >
-            Search
-          </button>
-        </form>
-      </div>
+      {/* Search */}
+      <form onSubmit={handleSearch} className='flex gap-2'>
+        <div className='relative flex-1'>
+          <Search
+            size={13}
+            className='absolute left-2.5 top-1/2 -translate-y-1/2 text-text-tertiary'
+          />
+          <input
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
+            placeholder='Search topics to debate...'
+            className='input-field pl-8 py-2 text-xs'
+          />
+        </div>
+        <button
+          type='submit'
+          className='btn-secondary px-3 py-2 text-xs rounded-lg'
+        >
+          Search
+        </button>
+      </form>
 
-      <div className='flex flex-wrap gap-1.5'>
+      {/* Category filters */}
+      <div className='flex flex-wrap gap-1'>
         {CATEGORY_OPTIONS.map((opt) => (
           <button
             key={opt.value}
@@ -149,7 +159,7 @@ export function DebateSuggestions() {
               setCustomQuery('')
               setSearchInput('')
             }}
-            className={`px-2.5 py-1 text-[11px] rounded font-medium transition-colors ${
+            className={`px-2 py-0.5 text-[11px] rounded font-medium transition-colors ${
               category === opt.value && !customQuery
                 ? 'bg-accent text-white'
                 : 'bg-surface-3 text-text-secondary hover:bg-surface-4'
@@ -160,18 +170,18 @@ export function DebateSuggestions() {
         ))}
       </div>
 
-      {/* Suggestions */}
+      {/* Suggestions list */}
       {isLoading || isFetching ? (
         <div className='flex items-center justify-center py-8 gap-2 text-text-tertiary text-xs'>
           <Loader2 size={14} className='animate-spin' />
-          Searching the web for debate-worthy topics...
+          Searching the web...
         </div>
       ) : suggestions.length === 0 ? (
         <div className='text-center py-8 text-xs text-text-tertiary'>
           No suggestions found. Try a different search or category.
         </div>
       ) : (
-        <div className='space-y-2'>
+        <div className='space-y-1.5 max-h-[calc(100vh-420px)] overflow-y-auto pr-1'>
           {suggestions.map((s, i) => {
             const TimeIcon = TIMELINESS_ICON[s.timeliness] || Clock
             return (
@@ -179,38 +189,41 @@ export function DebateSuggestions() {
                 key={i}
                 className='bg-surface-2 border border-border-subtle rounded-lg p-3 hover:border-border-default transition-colors'
               >
-                <div className='flex items-start gap-3'>
+                <div className='flex items-start gap-2'>
                   <div className='flex-1 min-w-0'>
-                    <div className='flex items-center gap-2 mb-1'>
+                    {/* Badges */}
+                    <div className='flex items-center gap-1.5 mb-1'>
                       {s.timeliness && (
                         <span
                           className={`flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded font-medium ${
                             TIMELINESS_COLORS[s.timeliness] || ''
                           }`}
                         >
-                          <TimeIcon size={10} />
+                          <TimeIcon size={9} />
                           {s.timeliness}
                         </span>
                       )}
                       {s.ai_framed && (
                         <span className='flex items-center gap-1 text-[10px] text-accent bg-accent/10 px-1.5 py-0.5 rounded font-medium'>
-                          <Sparkles size={10} />
-                          AI-framed
+                          <Sparkles size={9} />
+                          AI
                         </span>
                       )}
                     </div>
 
-                    <h3 className='text-sm font-medium text-text-primary leading-snug mb-1'>
+                    {/* Question */}
+                    <h3 className='text-xs font-medium text-text-primary leading-snug mb-1'>
                       {s.canonical_question}
                     </h3>
 
                     {s.description && (
-                      <p className='text-xs text-text-tertiary line-clamp-2 mb-2'>
+                      <p className='text-[11px] text-text-tertiary line-clamp-2 mb-2'>
                         {s.description}
                       </p>
                     )}
 
-                    <div className='flex items-center gap-2 flex-wrap'>
+                    {/* Tags + source */}
+                    <div className='flex items-center gap-1.5 flex-wrap'>
                       {s.tags?.map((tag) => (
                         <span
                           key={tag}
@@ -229,22 +242,23 @@ export function DebateSuggestions() {
                           rel='noopener noreferrer'
                           className='flex items-center gap-1 text-[10px] text-text-tertiary hover:text-accent transition-colors ml-auto'
                         >
-                          <ExternalLink size={10} />
+                          <ExternalLink size={9} />
                           Source
                         </a>
                       )}
                     </div>
                   </div>
 
+                  {/* Create button */}
                   <button
                     onClick={() => handleCreateTopic(s)}
                     disabled={creating === s.canonical_question}
-                    className='shrink-0 flex items-center gap-1 btn-primary px-3 py-1.5 text-xs rounded-lg disabled:opacity-50'
+                    className='shrink-0 flex items-center gap-1 btn-primary px-2.5 py-1.5 text-[11px] rounded-md disabled:opacity-50'
                   >
                     {creating === s.canonical_question ? (
-                      <Loader2 size={12} className='animate-spin' />
+                      <Loader2 size={10} className='animate-spin' />
                     ) : (
-                      <Plus size={12} />
+                      <Plus size={10} />
                     )}
                     Create
                   </button>
@@ -253,17 +267,6 @@ export function DebateSuggestions() {
             )
           })}
         </div>
-      )}
-
-      {/* Refresh */}
-      {!isLoading && suggestions.length > 0 && (
-        <button
-          onClick={() => refetch()}
-          disabled={isFetching}
-          className='w-full text-xs text-text-tertiary hover:text-accent transition-colors py-2'
-        >
-          {isFetching ? 'Refreshing...' : '↻ Refresh suggestions'}
-        </button>
       )}
     </div>
   )
