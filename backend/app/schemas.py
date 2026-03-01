@@ -238,7 +238,7 @@ class BriefingData(BaseModel):
 # ── Catch-Up Briefing ────────────────────────────────────────────────────────
 
 class ContributionOpportunity(BaseModel):
-    argument_id: str
+    argument_id: Optional[str]
     content_snippet: str
     opportunity_type: str  # "gap", "unchallenged_claim", "unanswered_question"
     suggestion: str

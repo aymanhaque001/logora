@@ -300,23 +300,26 @@ def get_catch_up(
 
     # Build contribution opportunities from AI suggestions and unaddressed nodes
     opportunities = []
+    # Pre-categorize unaddressed nodes for better matching
+    unaddressed = [n for n in nodes if not n.children]
+    unchallenged_nodes = [n for n in unaddressed if n.state.value == "unchallenged"]
+    question_nodes = [n for n in unaddressed if n.node_type.value == "open_question"]
+
     for sug in ai_data.get("contribution_suggestions", []):
-        # Find a matching unaddressed node to link to
+        opp_type = sug.get("opportunity_type", "gap")
+        # Match node based on opportunity type
         matching_node = None
-        for n in nodes:
-            if not n.children and sug.get("suggestion", "").lower() in n.content.lower():
-                matching_node = n
-                break
-        # Fall back to the first unaddressed node of the right type
-        if not matching_node:
-            for n in nodes:
-                if not n.children:
-                    matching_node = n
-                    break
+        if opp_type == "unanswered_question" and question_nodes:
+            matching_node = question_nodes.pop(0)
+        elif opp_type == "unchallenged_claim" and unchallenged_nodes:
+            matching_node = unchallenged_nodes.pop(0)
+        elif unaddressed:
+            matching_node = unaddressed[0]
+
         opportunities.append(ContributionOpportunity(
-            argument_id=matching_node.id if matching_node else "",
+            argument_id=matching_node.id if matching_node else None,
             content_snippet=matching_node.content[:120] if matching_node else "",
-            opportunity_type=sug.get("opportunity_type", "gap"),
+            opportunity_type=opp_type,
             suggestion=sug.get("suggestion", ""),
         ))
 

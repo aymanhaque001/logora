@@ -122,7 +122,7 @@ export function CatchUpModal({ catchUp, onClose, onNavigateToArgument }: Props) 
                     {opp.argument_id && (
                       <button
                         onClick={() => {
-                          onNavigateToArgument(opp.argument_id);
+                          onNavigateToArgument(opp.argument_id!);
                           onClose();
                         }}
                         className="shrink-0 flex items-center gap-1 px-2.5 py-1.5 text-[11px] font-medium bg-accent/15 text-accent rounded-md hover:bg-accent/25 transition-colors"

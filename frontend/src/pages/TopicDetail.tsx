@@ -193,7 +193,9 @@ export function TopicDetail() {
   }, []);
 
   const handleCatchUpNavigate = useCallback((argumentId: string) => {
-    handleExplorerNodeClick(argumentId);
+    if (argumentId) {
+      handleExplorerNodeClick(argumentId);
+    }
   }, [handleExplorerNodeClick]);
 
   if (!topic)

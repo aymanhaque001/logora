@@ -166,7 +166,7 @@ export interface BriefingData {
 }
 
 export interface ContributionOpportunity {
-  argument_id: string;
+  argument_id: string | null;
   content_snippet: string;
   opportunity_type: "gap" | "unchallenged_claim" | "unanswered_question";
   suggestion: string;
