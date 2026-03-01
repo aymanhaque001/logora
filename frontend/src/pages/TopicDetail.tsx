@@ -26,6 +26,8 @@ import { CatchUpModal } from '../components/CatchUpModal'
 import { ArgumentCard } from '../components/ArgumentCard'
 import { SubmitArgumentForm } from '../components/SubmitArgumentForm'
 import { ExplorerSidebar } from '../components/ExplorerSidebar'
+import { ArgumentGraph } from '../components/ArgumentGraph'
+import { ArgumentMapExpanded } from '../components/ArgumentMapExpanded'
 import { useAuth } from '../hooks/useAuth'
 import {
   MapPin,
@@ -42,6 +44,9 @@ import {
   PanelLeftClose,
   PanelLeft,
   Sparkles,
+  Maximize2,
+  MessageSquare,
+  Network,
 } from 'lucide-react'
 
 function buildChildMap(
@@ -174,6 +179,8 @@ export function TopicDetail() {
   const [briefingOpen, setBriefingOpen] = useState(true)
   const [catchUpDismissed, setCatchUpDismissed] = useState(false)
   const [showCatchUp, setShowCatchUp] = useState(false)
+  const [centerTab, setCenterTab] = useState<'comments' | 'graph'>('comments')
+  const [showExpandedMap, setShowExpandedMap] = useState(false)
 
   const showToast = useCallback((message: string) => {
     setToast(message)
@@ -345,6 +352,14 @@ export function TopicDetail() {
               </div>
             </div>
             <div className='flex items-center gap-2 shrink-0'>
+              {graphData && graphData.nodes.length > 0 && (
+                <button
+                  onClick={() => setShowExpandedMap(true)}
+                  className='flex items-center gap-1 px-2.5 py-1 text-xs border border-accent/30 rounded-md text-accent hover:bg-accent/10 transition-colors'
+                >
+                  <Maximize2 size={11} /> Focus Mode
+                </button>
+              )}
               {catchUpData && catchUpData.total_nodes > 0 && (
                 <button
                   onClick={() => setShowCatchUp(true)}
@@ -421,8 +436,35 @@ export function TopicDetail() {
           </aside>
         )}
 
-        {/* CENTER: Comment feed */}
-        <main className='flex-1 overflow-y-auto'>
+        {/* CENTER: Comment feed / Graph view */}
+        <main className='flex-1 overflow-y-auto flex flex-col'>
+          {/* Tab bar */}
+          <div className='border-b border-border bg-surface-1 px-5 flex items-center gap-0 shrink-0'>
+            <button
+              onClick={() => setCenterTab('comments')}
+              className={`flex items-center gap-1.5 px-3 py-2 text-xs font-medium border-b-2 transition-colors ${
+                centerTab === 'comments'
+                  ? 'border-accent text-accent'
+                  : 'border-transparent text-text-tertiary hover:text-text-secondary'
+              }`}
+            >
+              <MessageSquare size={12} /> Discussion
+            </button>
+            <button
+              onClick={() => setCenterTab('graph')}
+              className={`flex items-center gap-1.5 px-3 py-2 text-xs font-medium border-b-2 transition-colors ${
+                centerTab === 'graph'
+                  ? 'border-accent text-accent'
+                  : 'border-transparent text-text-tertiary hover:text-text-secondary'
+              }`}
+            >
+              <Network size={12} /> Graph View
+            </button>
+          </div>
+
+          {/* Tab content */}
+          {centerTab === 'comments' ? (
+          <div className='flex-1 overflow-y-auto'>
           <div className='max-w-2xl mx-auto px-5 py-5'>
             {/* New top-level argument */}
             {showForm ? (
@@ -492,6 +534,26 @@ export function TopicDetail() {
               ))}
             </div>
           </div>
+          </div>
+          ) : (
+            /* Graph View tab */
+            <div className='flex-1'>
+              {graphData && graphData.nodes.length > 0 ? (
+                <ArgumentGraph
+                  graphNodes={graphData.nodes}
+                  graphEdges={graphData.edges}
+                  tracks={tracks}
+                  onNodeClick={handleExplorerNodeClick}
+                  onExpand={() => setShowExpandedMap(true)}
+                />
+              ) : (
+                <div className='flex flex-col items-center justify-center h-64 text-text-tertiary gap-2'>
+                  <Network size={24} className='opacity-30' />
+                  <p className='text-sm'>Submit arguments to see the graph.</p>
+                </div>
+              )}
+            </div>
+          )}
         </main>
 
         {/* RIGHT: Briefing panel */}
@@ -569,6 +631,17 @@ export function TopicDetail() {
           catchUp={catchUpData}
           onClose={handleCatchUpClose}
           onNavigateToArgument={handleCatchUpNavigate}
+        />
+      )}
+
+      {/* Expanded Argument Map */}
+      {showExpandedMap && graphData && (
+        <ArgumentMapExpanded
+          graphNodes={graphData.nodes}
+          graphEdges={graphData.edges}
+          tracks={tracks}
+          onClose={() => setShowExpandedMap(false)}
+          onNodeClick={handleExplorerNodeClick}
         />
       )}
     </div>

@@ -6,7 +6,7 @@ import ReactFlow, {
 import dagre from "dagre";
 import "reactflow/dist/style.css";
 import { GraphNode, GraphEdge, NodeType, EdgeRelationship, DiscourseTrack } from "../types";
-import { ChevronDown, ChevronRight } from "lucide-react";
+import { ChevronDown, ChevronRight, Maximize2 } from "lucide-react";
 
 export const NODE_COLORS: Record<NodeType, { bg: string; border: string; text: string; accent: string }> = {
   assertion:     { bg: "#1e1b4b", border: "#6366f1", text: "#c7d2fe", accent: "#6366f1" },
@@ -156,9 +156,10 @@ interface Props {
   graphEdges: GraphEdge[];
   tracks: DiscourseTrack[];
   onNodeClick?: (nodeId: string) => void;
+  onExpand?: () => void;
 }
 
-function GraphInner({ graphNodes, graphEdges, tracks, onNodeClick }: Props) {
+function GraphInner({ graphNodes, graphEdges, tracks, onNodeClick, onExpand }: Props) {
   const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
   const [filterTrack, setFilterTrack] = useState("all");
   const [filterType, setFilterType] = useState("all");
@@ -224,8 +225,8 @@ function GraphInner({ graphNodes, graphEdges, tracks, onNodeClick }: Props) {
   }
 
   return (
-    <div>
-      <div className="flex flex-wrap items-center gap-2.5 px-4 py-2.5 bg-surface-2 border-b border-border-subtle text-xs">
+    <div className="flex flex-col h-full">
+      <div className="flex flex-wrap items-center gap-2.5 px-4 py-2.5 bg-surface-2 border-b border-border-subtle text-xs shrink-0">
         <span className="text-text-tertiary font-medium">Filter:</span>
         <select value={filterTrack} onChange={(e) => setFilterTrack(e.target.value)}
           className="border border-border-subtle rounded-md px-2.5 py-1.5 text-xs bg-surface-1 text-text-secondary focus:outline-none focus:border-accent/50">
@@ -238,12 +239,17 @@ function GraphInner({ graphNodes, graphEdges, tracks, onNodeClick }: Props) {
           {(Object.keys(NODE_COLORS) as NodeType[]).map((t) => <option key={t} value={t}>{t.replace("_", " ")}</option>)}
         </select>
         <span className="ml-auto text-text-tertiary">{rfNodes.length} nodes</span>
+        {onExpand && (
+          <button onClick={onExpand} className="flex items-center gap-1 text-accent hover:text-accent-hover font-medium transition" title="Expand to fullscreen">
+            <Maximize2 size={11} /> Focus Mode
+          </button>
+        )}
         {collapsed.size > 0 && (
           <button onClick={() => setCollapsed(new Set())} className="text-accent hover:text-accent-hover font-medium transition">Expand all</button>
         )}
       </div>
 
-      <div style={{ height: 400 }}>
+      <div style={{ flex: 1, minHeight: 400 }}>
         <ReactFlow nodes={rfNodes} edges={rfEdges} nodeTypes={RF_NODE_TYPES}
           fitView fitViewOptions={{ padding: 0.12 }} minZoom={0.15} maxZoom={2}
           attributionPosition="bottom-right">
@@ -257,7 +263,7 @@ function GraphInner({ graphNodes, graphEdges, tracks, onNodeClick }: Props) {
         </ReactFlow>
       </div>
 
-      <div className="flex flex-wrap gap-x-3 gap-y-1 px-4 py-2.5 border-t border-border-subtle text-xs">
+      <div className="flex flex-wrap gap-x-3 gap-y-1 px-4 py-2.5 border-t border-border-subtle text-xs shrink-0">
         {(Object.entries(NODE_COLORS) as [NodeType, typeof NODE_COLORS[NodeType]][]).map(([type, c]) => (
           <div key={type} className="flex items-center gap-1 text-text-tertiary">
             <span className="w-2.5 h-2.5 rounded-sm" style={{ background: c.bg, border: `1px solid ${c.border}` }} />
