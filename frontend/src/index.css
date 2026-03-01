@@ -1,0 +1,93 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    min-height: 100vh;
+    background-color: #0d0f11;
+    color: #e2e4e9;
+    font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+  }
+
+  ::selection {
+    background-color: rgba(99,102,241,0.35);
+    color: #e2e4e9;
+  }
+
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: #2a2f38; border-radius: 9999px; }
+  ::-webkit-scrollbar-thumb:hover { background: #3a3f4a; }
+}
+
+@layer components {
+  .btn-primary {
+    background-color: #6366f1;
+    color: #fff;
+    font-weight: 500;
+    transition: background-color 150ms;
+  }
+  .btn-primary:hover { background-color: #818cf8; }
+  .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  .btn-secondary {
+    background-color: #1a1d23;
+    color: #e2e4e9;
+    font-weight: 500;
+    border: 1px solid #2a2f38;
+    transition: all 150ms;
+  }
+  .btn-secondary:hover {
+    background-color: #22262e;
+    border-color: #3a3f4a;
+  }
+
+  .btn-ghost {
+    background: transparent;
+    color: #9ca0ab;
+    font-weight: 500;
+    transition: all 150ms;
+  }
+  .btn-ghost:hover { color: #e2e4e9; background-color: #1a1d23; }
+
+  .input-field {
+    width: 100%;
+    border: 1px solid #2a2f38;
+    border-radius: 0.5rem;
+    padding: 0.625rem 0.875rem;
+    font-size: 0.875rem;
+    background-color: #13161a;
+    color: #e2e4e9;
+    transition: all 150ms;
+  }
+  .input-field::placeholder { color: #6b7080; }
+  .input-field:focus {
+    outline: none;
+    border-color: #6366f1;
+    box-shadow: 0 0 0 2px rgba(99,102,241,0.15);
+  }
+
+  .card {
+    background-color: #13161a;
+    border: 1px solid #2a2f38;
+    border-radius: 0.5rem;
+  }
+
+  .card-hover {
+    background-color: #13161a;
+    border: 1px solid #2a2f38;
+    border-radius: 0.5rem;
+    transition: all 150ms;
+  }
+  .card-hover:hover {
+    border-color: #3a3f4a;
+    background-color: #1a1d23;
+  }
+}
