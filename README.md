@@ -51,16 +51,16 @@ Logora solves these by treating debates as **knowledge graphs** instead of comme
 
 Debates are modeled as **directed acyclic graphs** of argument nodes, not flat threads. Each node has a semantic type:
 
-| Node Type | Description |
-|-----------|-------------|
-| **Assertion** | A claim or position statement |
-| **Counter** | Directly challenges another argument |
-| **Qualification** | Adds nuance or conditions to an argument |
-| **Exception** | Identifies edge cases where an argument doesn't hold |
-| **Synthesis** | Combines multiple arguments into a higher-level insight |
-| **Reframe** | Recontextualizes the debate from a different angle |
-| **Open Question** | Raises an unanswered question for the community |
-| **Concession** | Acknowledges validity of an opposing point |
+| Node Type         | Description                                             |
+| ----------------- | ------------------------------------------------------- |
+| **Assertion**     | A claim or position statement                           |
+| **Counter**       | Directly challenges another argument                    |
+| **Qualification** | Adds nuance or conditions to an argument                |
+| **Exception**     | Identifies edge cases where an argument doesn't hold    |
+| **Synthesis**     | Combines multiple arguments into a higher-level insight |
+| **Reframe**       | Recontextualizes the debate from a different angle      |
+| **Open Question** | Raises an unanswered question for the community         |
+| **Concession**    | Acknowledges validity of an opposing point              |
 
 Edges between arguments carry relationship types: `supports`, `challenges`, `qualifies`, `refines`, `contradicts`, `synthesizes`, `questions`.
 
@@ -92,13 +92,13 @@ Debates naturally fragment into sub-themes. Logora organizes these into **discou
 
 Users earn credibility based on contribution quality, not volume:
 
-| Action | Points |
-|--------|:------:|
-| Submit argument with sources | +2.0 |
-| Submit argument without sources | +0.5 |
-| Your argument receives engagement | +1.0 |
-| Concede a point (intellectual honesty) | +3.0 |
-| Someone concedes to your argument | +2.0 |
+| Action                                 | Points |
+| -------------------------------------- | :----: |
+| Submit argument with sources           |  +2.0  |
+| Submit argument without sources        |  +0.5  |
+| Your argument receives engagement      |  +1.0  |
+| Concede a point (intellectual honesty) |  +3.0  |
+| Someone concedes to your argument      |  +2.0  |
 
 Credibility is displayed next to every user's name, creating a soft incentive for sourced, honest participation.
 
@@ -179,6 +179,7 @@ This runs without AI too — the system falls back to computed statistics when n
 ## Tech Stack
 
 ### Backend
+
 - **[FastAPI](https://fastapi.tiangolo.com/)** 0.115 — async Python web framework
 - **[SQLAlchemy](https://www.sqlalchemy.org/)** 2.0 — ORM with SQLite
 - **[Pydantic](https://docs.pydantic.dev/)** 2.9 — data validation and serialization
@@ -188,6 +189,7 @@ This runs without AI too — the system falls back to computed statistics when n
 - **[Uvicorn](https://www.uvicorn.org/)** 0.30 — ASGI server
 
 ### Frontend
+
 - **[React](https://react.dev/)** 18.3 — UI framework
 - **[TypeScript](https://www.typescriptlang.org/)** 5.5 — type safety
 - **[Vite](https://vitejs.dev/)** 5.4 — build tool and dev server
@@ -314,19 +316,19 @@ This creates:
 
 **5 Users** (all with password `password123`):
 
-| Email | Name | Expert Domain | Credibility |
-|-------|------|---------------|:-----------:|
-| sarah@example.com | Sarah Chen | Urban Economics | 82 |
-| marcus@example.com | Marcus Osei | Urban Planning | 79 |
-| priya@example.com | Priya Sharma | — | 65 |
-| david@example.com | David Kowalski | — | 58 |
-| elena@example.com | Elena Vasquez | Sociology | 77 |
+| Email              | Name           | Expert Domain   | Credibility |
+| ------------------ | -------------- | --------------- | :---------: |
+| sarah@example.com  | Sarah Chen     | Urban Economics |     82      |
+| marcus@example.com | Marcus Osei    | Urban Planning  |     79      |
+| priya@example.com  | Priya Sharma   | —               |     65      |
+| david@example.com  | David Kowalski | —               |     58      |
+| elena@example.com  | Elena Vasquez  | Sociology       |     77      |
 
 **3 Debate Topics** with 9 discourse tracks and ~40 arguments:
 
-1. *"Is gentrification net harmful to low-income urban residents in major US cities?"* — 16 arguments across economic effects, housing, and policy tracks
-2. *"Does increased low-skilled immigration depress wages for native low-income workers?"* — 8 arguments covering empirical evidence, methodology, and framing  
-3. *"Should cities prioritise cycling infrastructure over car lanes in dense urban centres?"* — 8 arguments on emissions, equity, and economics
+1. _"Is gentrification net harmful to low-income urban residents in major US cities?"_ — 16 arguments across economic effects, housing, and policy tracks
+2. _"Does increased low-skilled immigration depress wages for native low-income workers?"_ — 8 arguments covering empirical evidence, methodology, and framing
+3. _"Should cities prioritise cycling infrastructure over car lanes in dense urban centres?"_ — 8 arguments on emissions, equity, and economics
 
 All arguments include real academic citations and demonstrate the full range of node types and states.
 
@@ -408,45 +410,45 @@ Full interactive docs available at `http://localhost:8000/docs` when the backend
 
 ### Authentication
 
-| Method | Endpoint | Auth | Description |
-|--------|----------|:----:|-------------|
-| `POST` | `/api/users/register` | — | Register a new user |
-| `POST` | `/api/users/login` | — | Login, receive JWT |
-| `GET` | `/api/users/me` | ✓ | Get current user profile |
+| Method | Endpoint              | Auth | Description              |
+| ------ | --------------------- | :--: | ------------------------ |
+| `POST` | `/api/users/register` |  —   | Register a new user      |
+| `POST` | `/api/users/login`    |  —   | Login, receive JWT       |
+| `GET`  | `/api/users/me`       |  ✓   | Get current user profile |
 
 ### Topics
 
-| Method | Endpoint | Auth | Description |
-|--------|----------|:----:|-------------|
-| `GET` | `/api/topics` | — | List topics (filter by `tag`, `search`, `status`) |
-| `POST` | `/api/topics` | ✓ | Create a new debate topic |
-| `GET` | `/api/topics/{id}` | — | Get topic details |
-| `PATCH` | `/api/topics/{id}` | ✓ | Update topic (creator only) |
-| `DELETE` | `/api/topics/{id}` | ✓ | Delete topic (creator only, no arguments) |
-| `POST` | `/api/topics/{id}/archive` | ✓ | Archive topic (creator only) |
-| `GET` | `/api/topics/{id}/tracks` | — | List discourse tracks |
-| `POST` | `/api/topics/{id}/tracks` | ✓ | Create a discourse track |
-| `GET` | `/api/topics/{id}/briefing` | — | Get AI-generated briefing |
-| `POST` | `/api/topics/lifecycle/check` | — | Run lifecycle check on all topics |
+| Method   | Endpoint                      | Auth | Description                                       |
+| -------- | ----------------------------- | :--: | ------------------------------------------------- |
+| `GET`    | `/api/topics`                 |  —   | List topics (filter by `tag`, `search`, `status`) |
+| `POST`   | `/api/topics`                 |  ✓   | Create a new debate topic                         |
+| `GET`    | `/api/topics/{id}`            |  —   | Get topic details                                 |
+| `PATCH`  | `/api/topics/{id}`            |  ✓   | Update topic (creator only)                       |
+| `DELETE` | `/api/topics/{id}`            |  ✓   | Delete topic (creator only, no arguments)         |
+| `POST`   | `/api/topics/{id}/archive`    |  ✓   | Archive topic (creator only)                      |
+| `GET`    | `/api/topics/{id}/tracks`     |  —   | List discourse tracks                             |
+| `POST`   | `/api/topics/{id}/tracks`     |  ✓   | Create a discourse track                          |
+| `GET`    | `/api/topics/{id}/briefing`   |  —   | Get AI-generated briefing                         |
+| `POST`   | `/api/topics/lifecycle/check` |  —   | Run lifecycle check on all topics                 |
 
 ### Arguments
 
-| Method | Endpoint | Auth | Description |
-|--------|----------|:----:|-------------|
-| `GET` | `/api/topics/{id}/arguments` | — | List arguments (filter by `track_id`) |
-| `POST` | `/api/topics/{id}/arguments` | ✓ | Submit argument (AI classifies + assigns track) |
-| `GET` | `/api/topics/{id}/arguments/graph` | — | Get full graph data (nodes + edges for ReactFlow) |
-| `PATCH` | `/api/topics/{id}/arguments/{arg_id}` | ✓ | Update argument (author only) |
-| `DELETE` | `/api/topics/{id}/arguments/{arg_id}` | ✓ | Delete argument (author only, leaf only) |
-| `POST` | `/api/topics/{id}/arguments/{arg_id}/transition` | ✓ | Transition argument state |
-| `GET` | `/api/topics/{id}/arguments/{arg_id}/transitions` | ✓ | Get available state transitions |
-| `POST` | `/api/topics/{id}/arguments/lifecycle/dormant` | — | Mark inactive arguments as dormant |
+| Method   | Endpoint                                          | Auth | Description                                       |
+| -------- | ------------------------------------------------- | :--: | ------------------------------------------------- |
+| `GET`    | `/api/topics/{id}/arguments`                      |  —   | List arguments (filter by `track_id`)             |
+| `POST`   | `/api/topics/{id}/arguments`                      |  ✓   | Submit argument (AI classifies + assigns track)   |
+| `GET`    | `/api/topics/{id}/arguments/graph`                |  —   | Get full graph data (nodes + edges for ReactFlow) |
+| `PATCH`  | `/api/topics/{id}/arguments/{arg_id}`             |  ✓   | Update argument (author only)                     |
+| `DELETE` | `/api/topics/{id}/arguments/{arg_id}`             |  ✓   | Delete argument (author only, leaf only)          |
+| `POST`   | `/api/topics/{id}/arguments/{arg_id}/transition`  |  ✓   | Transition argument state                         |
+| `GET`    | `/api/topics/{id}/arguments/{arg_id}/transitions` |  ✓   | Get available state transitions                   |
+| `POST`   | `/api/topics/{id}/arguments/lifecycle/dormant`    |  —   | Mark inactive arguments as dormant                |
 
 ### Health
 
-| Method | Endpoint | Auth | Description |
-|--------|----------|:----:|-------------|
-| `GET` | `/api/health` | — | Server status + AI availability |
+| Method | Endpoint      | Auth | Description                     |
+| ------ | ------------- | :--: | ------------------------------- |
+| `GET`  | `/api/health` |  —   | Server status + AI availability |
 
 ---
 
@@ -454,13 +456,13 @@ Full interactive docs available at `http://localhost:8000/docs` when the backend
 
 All configuration is via environment variables in `backend/.env`:
 
-| Variable | Required | Default | Description |
-|----------|:--------:|---------|-------------|
-| `DATABASE_URL` | No | `sqlite:///./logora.db` | SQLAlchemy database URL |
-| `SECRET_KEY` | **Yes** | — | Secret key for JWT token signing |
-| `ANTHROPIC_API_KEY` | No | `""` | Anthropic API key for Claude AI features |
-| `CLAUDE_MODEL` | No | `claude-sonnet-4-20250514` | Claude model to use |
-| `FRONTEND_URL` | No | `http://localhost:5173` | Frontend URL for CORS |
+| Variable            | Required | Default                    | Description                              |
+| ------------------- | :------: | -------------------------- | ---------------------------------------- |
+| `DATABASE_URL`      |    No    | `sqlite:///./logora.db`    | SQLAlchemy database URL                  |
+| `SECRET_KEY`        | **Yes**  | —                          | Secret key for JWT token signing         |
+| `ANTHROPIC_API_KEY` |    No    | `""`                       | Anthropic API key for Claude AI features |
+| `CLAUDE_MODEL`      |    No    | `claude-sonnet-4-20250514` | Claude model to use                      |
+| `FRONTEND_URL`      |    No    | `http://localhost:5173`    | Frontend URL for CORS                    |
 
 ### Running Without AI
 
@@ -480,16 +482,19 @@ The app is fully functional without AI — it just lacks the intelligent classif
 See the [GitHub Issues](https://github.com/aymanhaque001/logora/issues) for the full planned feature set, organized by priority tier:
 
 ### Tier 1 — Prevents Circular Debate
+
 - [#1 Duplicate / Rehash Detection](https://github.com/aymanhaque001/logora/issues/1) — AI detects when a user is about to restate an existing argument
 - [#2 Newcomer "Catch Up" Briefing](https://github.com/aymanhaque001/logora/issues/2) — personalized onboarding summary for first-time topic visitors
 - [#3 Consensus / Resolution Markers](https://github.com/aymanhaque001/logora/issues/3) — mark branches as resolved to signal settled ground
 
 ### Tier 2 — Improves Debate Quality
+
 - [#4 Steel-Man Prompts](https://github.com/aymanhaque001/logora/issues/4) — require understanding of opposing view before rebutting
 - [#5 Cross-Topic Knowledge Graph](https://github.com/aymanhaque001/logora/issues/5) — link related arguments across debates
 - [#6 Gap Analysis](https://github.com/aymanhaque001/logora/issues/6) — AI identifies unsupported claims and unanswered challenges
 
 ### Tier 3 — Engagement & Incentives
+
 - [#7 Progression-Based Credibility](https://github.com/aymanhaque001/logora/issues/7) — reward novelty over volume
 - [#8 Endorsement System](https://github.com/aymanhaque001/logora/issues/8) — "this represents my view" instead of "+1" comments
 - [#9 Debate Digest / Export](https://github.com/aymanhaque001/logora/issues/9) — generate shareable "Wikipedia article" from any debate

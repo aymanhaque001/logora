@@ -314,7 +314,7 @@ def get_catch_up(
         elif opp_type == "unchallenged_claim" and unchallenged_nodes:
             matching_node = unchallenged_nodes.pop(0)
         elif unaddressed:
-            matching_node = unaddressed[0]
+            matching_node = unaddressed.pop(0)
 
         opportunities.append(ContributionOpportunity(
             argument_id=matching_node.id if matching_node else None,
