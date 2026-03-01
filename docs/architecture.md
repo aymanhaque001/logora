@@ -14,6 +14,10 @@ Logora is a three-tier application: a React SPA frontend, a FastAPI backend, and
 ┌─────────────────────────────────────────────────────────────────────────┐
 │                          Frontend (React SPA)                           │
 │                                                                         │
+│  ┌─────────────────────────────────────────────────────────────────┐   │
+│  │  Dashboard Home Page                                           │   │
+│  │  News Ticker · Active Debates · Suggested Debates · RAG Query  │   │
+│  └─────────────────────────────────────────────────────────────────┘   │
 │  ┌──────────┐  ┌────────────────┐  ┌──────────────┐  ┌──────────────┐  │
 │  │ Explorer  │  │   Center       │  │  Briefing    │  │  RAG Query   │  │
 │  │ Sidebar   │  │  Discussion    │  │  Room        │  │  Panel       │  │
@@ -21,7 +25,7 @@ Logora is a three-tier application: a React SPA frontend, a FastAPI backend, and
 │  │  nav)     │  │  Focus Mode    │  │  Catch-Up    │  │   Debate"    │  │
 │  └──────────┘  └────────────────┘  └──────────────┘  └──────────────┘  │
 │                                                                         │
-│  Debate Suggestions (Home) · Duplicate Check Modal · Analytics Panel    │
+│  Debate Suggestions (Home) · News Ticker · Duplicate Check Modal · Analytics  │
 │                                                                         │
 │  React 18 · TypeScript · TanStack Query · ReactFlow · Tailwind CSS      │
 └──────────────────────────────┬──────────────────────────────────────────┘
@@ -37,8 +41,8 @@ Logora is a three-tier application: a React SPA frontend, a FastAPI backend, and
 │  │  │ register │ │ CRUD      │ │ CRUD        │ │ web search   │   │    │
 │  │  │ login    │ │ lifecycle │ │ graph       │ │ + AI framing │   │    │
 │  │  │ me       │ │ tracks    │ │ transitions │ │              │   │    │
-│  │  │          │ │ briefing  │ │ dup-check   │ │              │   │    │
-│  │  │          │ │ catch-up  │ │ rag-query   │ │              │   │    │
+│  │  │          │ │ briefing  │ │ dup-check   │ │ /news        │   │    │
+│  │  │          │ │ catch-up  │ │ rag-query   │ │ live feed    │   │    │
 │  │  │          │ │           │ │ backfill    │ │              │   │    │
 │  │  └──────────┘ └───────────┘ └─────────────┘ └──────────────┘   │    │
 │  └─────────────────────────────────────────────────────────────────┘    │
@@ -51,9 +55,9 @@ Logora is a three-tier application: a React SPA frontend, a FastAPI backend, and
 │  │  │ briefing   │ │ dup-check  │ │ ChromaDB  │ │ + Claude     │  │    │
 │  │  │ summarize  │ │ rag-brief  │ │ embed     │ │ framing      │  │    │
 │  │  │ catch-up   │ │ graph-walk │ │ search    │ │              │  │    │
-│  │  │ track-det  │ │            │ │ backfill  │ │              │  │    │
-│  │  └────────────┘ └────────────┘ └───────────┘ └──────────────┘  │    │
-│  │  ┌────────────┐ ┌────────────┐ ┌───────────┐                   │    │
+│  │  │ track-det  │ │            │ │ backfill  │ │ News Feed    │  │    │
+│  │  └────────────┘ └────────────┘ └───────────┘ │ news_service  │  │    │
+│  │  ┌────────────┐ ┌────────────┐ ┌───────────┐ └──────────────┘  │    │
 │  │  │ Auth       │ │ Credibility│ │ Config    │                   │    │
 │  │  │ JWT+bcrypt │ │ scoring    │ │ .env      │                   │    │
 │  │  └────────────┘ └────────────┘ └───────────┘                   │    │
@@ -193,6 +197,28 @@ GET /api/suggestions?category=technology
 └────────────────────────────────────────┘
 ```
 
+### 5. News Feed Flow
+
+```
+GET /api/news?category=technology&limit=20
+        │
+        ▼
+┌────────────────────────────────────────┐
+│  news_service                           │
+│                                         │
+│  1. Pick queries for category            │  2 queries per category
+│  2. DuckDuckGo news search              │  raw articles, no AI framing
+│  3. Deduplicate by title hash            │  MD5-based dedup
+│  4. Attach category label               │
+│  5. Return NewsArticle[]                 │
+│                                         │
+│  Fallback:                              │
+│  - No results → hardcoded headlines     │
+└────────────────────────────────────────┘
+```
+
+The news feed is consumed by the `NewsTicker` component on the home page. Unlike debate suggestions, news articles are returned raw (no AI framing) for fast loading and real-time display.
+
 ---
 
 ## Authentication Flow
@@ -220,7 +246,7 @@ JWT tokens are signed with `SECRET_KEY` using the `HS256` algorithm. Tokens cont
 
 ### Frontend (TanStack React Query)
 
-- **Query keys**: Structured as `['topics']`, `['topic', id]`, `['arguments', topicId]`, `['graph', topicId]`, `['tracks', topicId]`, `['briefing', topicId]`, `['suggestions', params]`.
+- **Query keys**: Structured as `['topics']`, `['topic', id]`, `['arguments', topicId]`, `['graph', topicId]`, `['tracks', topicId]`, `['briefing', topicId]`, `['suggestions', params]`, `['news-feed']`, `['topics-for-rag']`.
 - **Mutations**: `useMutation` with `onSuccess` callbacks that invalidate related query keys.
 - **Auth state**: Managed via `useAuth()` hook using React state + `localStorage`.
 - **Stale time**: Default TanStack Query stale time (0ms) — refetches on window focus.
@@ -233,7 +259,7 @@ Logora is designed to work at multiple capability levels:
 
 | Level         | AI  | ChromaDB | DuckDuckGo | Experience                                                                           |
 | ------------- | --- | -------- | ---------- | ------------------------------------------------------------------------------------ |
-| **Full**      | ✓   | ✓        | ✓          | All features: classification, briefings, RAG, duplicate detection, web suggestions   |
+| **Full**      | ✓   | ✓        | ✓          | All features: classification, briefings, RAG, duplicate detection, web suggestions, news feed |
 | **No AI**     | ✗   | ✓        | ✓          | Vector search works, stubs for classification/briefing, web search with stub framing |
 | **No Vector** | ✓   | ✗        | ✓          | AI classification/briefing works, no RAG/duplicate detection, web suggestions work   |
 | **Minimal**   | ✗   | ✗        | ✗          | Core debate platform: graph structure, state machine, credibility, manual tracks     |
@@ -268,12 +294,12 @@ backend/
 │   ├── models.py        # 5 SQLAlchemy models, 6 enums
 │   ├── schemas.py       # ~20 Pydantic schemas
 │   ├── routers/         # Route handlers (thin controllers)
-│   └── services/        # Business logic (AI, RAG, search, credibility)
+│   └── services/        # Business logic (AI, RAG, search, news, credibility)
 └── run.py               # uvicorn.run() entry point
 
 frontend/
 └── src/
-    ├── api/client.ts    # All HTTP calls (axios)
+    ├── api/client.ts    # All HTTP calls (axios, 26 functions)
     ├── hooks/useAuth.ts # Auth context
     ├── types/index.ts   # TypeScript interfaces
     ├── pages/           # Route-level components

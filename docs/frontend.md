@@ -25,11 +25,31 @@ Login and register forms with tab switching. Redirects to Home on success.
 
 ### Home Page (`Home.tsx`)
 
-| Section            | Description                                                                     |
-| ------------------ | ------------------------------------------------------------------------------- |
-| Topic list         | All topics with search, tag filters, and status indicators                      |
-| Debate suggestions | `DebateSuggestions` component — web-search-powered topic ideas from recent news |
-| Create topic       | Link to `CreateTopic` page                                                      |
+Dashboard-style layout with four zones:
+
+```
+┌────────────────────────────────────────────────────────────┐
+│                  Live News Ticker                       │
+│  Auto-scrolling headlines · "Debate This" buttons       │
+│  Pause on hover · Manual scroll arrows                  │
+├────────────────────────────────────────────────────────────┤
+│                Ask the Debates (RAG Query)               │
+│  Topic picker + query input → Graph RAG answers         │
+├─────────────────────────────┬──────────────────────────────┤
+│      Active Debates        │    Suggested Debates       │
+│                            │                            │
+│  Search + tag filters      │  Category tabs + search    │
+│  Scrollable topic cards    │  AI-framed from news       │
+│  "New Debate" button       │  "Create" buttons          │
+└─────────────────────────────┴──────────────────────────────┘
+```
+
+| Zone                | Component            | Description                                                                    |
+| ------------------- | -------------------- | ------------------------------------------------------------------------------ |
+| News Ticker         | `NewsTicker`         | Auto-scrolling horizontal news cards from DuckDuckGo, "Debate This" buttons    |
+| RAG Query           | `HomeRAGQuery`       | Topic dropdown + query input, Graph RAG answers with retrieval stats           |
+| Active Debates      | Inline (Home.tsx)    | Topic cards with search, tag filters, status indicators, "New Debate" link     |
+| Suggested Debates   | `DebateSuggestions`  | AI-framed debate suggestions from news with category tabs and "Create" buttons |
 
 ### Create Topic Page (`CreateTopic.tsx`)
 
@@ -278,17 +298,39 @@ Modal showing duplicate detection results before argument submission.
 
 #### `DebateSuggestions`
 
-Web-search-powered topic suggestions on the Home page.
+Web-search-powered topic suggestions, displayed as the right column on the Home page.
 
-- Category filter tabs: All Topics, Geopolitical, Technology, Economic, Social, Environment
+- Category filter tabs: All, Geopolitical, Tech, Economic, Social, Environ.
 - Custom search input
-- Suggestion cards with:
+- Refresh button with spin animation
+- Scrollable suggestion cards with:
   - Timeliness badge (breaking / recent / ongoing)
   - AI-framed badge
-  - Tags, location
-  - Source article link
-  - "Start this debate" button → creates topic and navigates to it
+  - Tags, source link
+  - "Create" button → creates topic and navigates to it
 - Live indicator when search is available
+
+#### `NewsTicker`
+
+Auto-scrolling horizontal news ticker displayed at the top of the Home page.
+
+- Fetches from `GET /api/news` (25 articles, 3-min stale time, 5-min auto-refresh)
+- Cards show: category badge, source, title, body preview
+- **"Debate This"** button creates a topic from the article
+- Infinite scroll (duplicated content for seamless loop)
+- Pause on hover, play/pause button, manual scroll arrows
+- Category color coding: geopolitical=sky, technology=orange, economic=emerald, social=violet, environment=teal
+
+#### `HomeRAGQuery`
+
+Graph RAG query panel on the Home page, allowing users to query any debate.
+
+- Topic dropdown selector (loads all topics)
+- Query text input with search icon
+- "Ask" button triggers `ragQuery()` mutation
+- Result display: AI answer, retrieval stats (vector count, graph count, merged), clear button
+- Error state for missing vector backfill
+- Loading state with "Searching vectors & traversing argument graph..."
 
 ### Utility Components
 
@@ -326,6 +368,8 @@ All server state is managed via React Query. Key query keys:
 | `['tracks', topicId]`     | `GET /topics/:id/tracks`          | TopicDetail sidebar                |
 | `['briefing', topicId]`   | `GET /topics/:id/briefing`        | BriefingRoom                       |
 | `['suggestions', params]` | `GET /suggestions`                | DebateSuggestions                  |
+| `['news-feed']`           | `GET /news`                       | NewsTicker                         |
+| `['topics-for-rag']`      | `GET /topics`                     | HomeRAGQuery                       |
 
 **Mutations** invalidate related queries on success:
 
@@ -353,7 +397,7 @@ const { user, token, login, register, logout, loading } = useAuth()
 
 Axios instance with base URL `/api` (proxied by Vite to `:8000` in development).
 
-**24 API functions:**
+**26 API functions:**
 
 | Function                  | Method | Path                                       |
 | ------------------------- | ------ | ------------------------------------------ |
@@ -378,6 +422,7 @@ Axios instance with base URL `/api` (proxied by Vite to `:8000` in development).
 | `getBriefing`             | GET    | `/topics/:id/briefing`                     |
 | `getCatchUp`              | GET    | `/topics/:id/catch-up`                     |
 | `getDebateSuggestions`    | GET    | `/suggestions`                             |
+| `getNewsFeed`             | GET    | `/news`                                    |
 | `checkDuplicate`          | POST   | `/topics/:id/arguments/check-duplicate`    |
 | `ragQuery`                | POST   | `/topics/:id/arguments/rag-query`          |
 | `backfillVectors`         | POST   | `/topics/:id/arguments/backfill-vectors`   |
@@ -401,6 +446,7 @@ Key interfaces mirroring backend schemas:
 | `CatchUpData`             | Newcomer briefing with established/refuted/active/opportunities |
 | `ContributionOpportunity` | Where a newcomer can contribute (gap/unchallenged/unanswered)   |
 | `DebateSuggestion`        | Web search suggestion with timeliness, tags, source             |
+| `NewsArticle`             | News article for ticker with title, body, url, source, date, category |
 | `DuplicateCheckResult`    | Duplicate detection result with confidence, similar args        |
 | `RAGQueryResult`          | RAG Q&A response with answer, context count, retrieval stats    |
 

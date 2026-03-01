@@ -728,6 +728,52 @@ Search recent news and suggest debate topics framed by Claude.
 
 ---
 
+## News Feed
+
+### Get News Feed
+
+```
+GET /api/news
+```
+
+Fetch raw news headlines from DuckDuckGo for the live news ticker on the home page. Unlike debate suggestions, these are returned without AI framing for fast loading.
+
+**Query Parameters:**
+
+| Param      | Type   | Default | Description                                                       |
+| ---------- | ------ | ------- | ----------------------------------------------------------------- |
+| `category` | string | —       | `geopolitical`, `technology`, `economic`, `social`, `environment` |
+| `limit`    | int    | 20      | Number of articles (1-50)                                         |
+
+**Response:** `200 OK`
+
+```json
+{
+  "articles": [
+    {
+      "title": "Global leaders meet to discuss AI governance frameworks",
+      "body": "World leaders are convening to establish international guidelines...",
+      "url": "https://...",
+      "source": "Reuters",
+      "date": "2026-02-28T08:25:00+00:00",
+      "category": "technology"
+    }
+  ],
+  "count": 20,
+  "status": {
+    "news_available": true
+  }
+}
+```
+
+**Categories:** Articles are labeled with the category of the query used to find them. When no category is specified, articles are drawn from all 5 categories.
+
+**Deduplication:** Articles with identical titles (by MD5 hash) are automatically deduplicated.
+
+**Fallback:** When DuckDuckGo is unavailable, returns 4 hardcoded placeholder headlines.
+
+---
+
 ## Health
 
 ### Health Check

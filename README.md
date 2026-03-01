@@ -156,6 +156,7 @@ This powers three features:
 - **Newcomer catch-up** — personalized briefing of established points, active debates, and contribution opportunities
 - **RAG Q&A** — ask analytical questions about any debate and get citation-backed answers
 - **Web search suggestions** — DuckDuckGo searches recent news, Claude frames results as debate topics
+- **Live news feed** — real-time news ticker from global sources across 5 categories, with one-click debate creation
 
 ### Visualization & Analytics
 
@@ -167,6 +168,7 @@ This powers three features:
 
 ### Interface
 
+- **Dashboard home page** — news ticker, side-by-side active/suggested debates, and home RAG query panel
 - **Comment-style feed** — threaded, scrollable argument cards with inline reply forms
 - **Dark theme** — full dark mode UI with indigo accents
 - **JWT authentication** — secure token-based auth with bcrypt password hashing
@@ -179,6 +181,10 @@ This powers three features:
 ┌─────────────────────────────────────────────────────────────────────────┐
 │                          Frontend (React)                               │
 │                                                                         │
+│  ┌──────────────────────────────────────────────────────────────────┐   │
+│  │  Dashboard Home Page                                            │   │
+│  │  News Ticker · Active Debates · Suggested Debates · RAG Query   │   │
+│  └──────────────────────────────────────────────────────────────────┘   │
 │  ┌──────────┐  ┌────────────────┐  ┌──────────────┐  ┌──────────────┐  │
 │  │ Explorer  │  │  Comment Feed  │  │  Briefing    │  │  RAG Query   │  │
 │  │ Sidebar   │  │  + Graph View  │  │  Room        │  │  Panel       │  │
@@ -199,12 +205,13 @@ This powers three features:
 │  │  bcrypt) │  │  /topics      │  │  classify     │  │  Graph walk    │  │
 │  │          │  │  /arguments   │  │  briefings    │  │  Duplicate     │  │
 │  │          │  │  /suggestions │  │  catch-up     │  │  RAG Q&A       │  │
+│  │          │  │  /news        │  │              │  │                │  │
 │  └──────────┘  └──────────────┘  └──────────────┘  └────────────────┘  │
 │                                                                         │
 │  ┌───────────────────────────┐  ┌──────────────────────────────────┐    │
-│  │  Web Search Service       │  │  Credibility Scoring             │    │
+│  │  Web Search + News Feed   │  │  Credibility Scoring             │    │
 │  │  DuckDuckGo + Claude      │  │  Quality-based point system      │    │
-│  │  framing                  │  │                                  │    │
+│  │  suggestions + ticker     │  │                                  │    │
 │  └───────────────────────────┘  └──────────────────────────────────┘    │
 │                                                                         │
 │  FastAPI · SQLAlchemy · Pydantic · Anthropic SDK                         │
@@ -441,14 +448,16 @@ logora/
 │       │   ├── topics.py            # /api/topics — CRUD, lifecycle, tracks, briefing, catch-up
 │       │   ├── arguments.py         # /api/topics/{id}/arguments — CRUD, graph, transitions,
 │       │   │                        #   duplicate check, RAG query, vector backfill
-│       │   └── suggestions.py       # /api/suggestions — web search debate suggestions
+│       │   ├── suggestions.py       # /api/suggestions — web search debate suggestions
+│       │   └── news.py              # /api/news — live news feed for ticker
 │       │
 │       └── services/
 │           ├── ai_service.py        # Claude AI (classify, brief, summarize, catch-up)
 │           ├── credibility.py       # Credibility scoring system
 │           ├── vector_store.py      # ChromaDB vector store (embed, search, backfill)
 │           ├── graph_rag.py         # Hybrid RAG (vector + graph walk + Claude analysis)
-│           └── web_search_service.py # DuckDuckGo + Claude debate suggestion framing
+│           ├── web_search_service.py # DuckDuckGo + Claude debate suggestion framing
+│           └── news_service.py      # DuckDuckGo news feed for live ticker
 │
 ├── frontend/
 │   ├── package.json
@@ -463,7 +472,7 @@ logora/
 │       ├── index.css                # Global styles + Tailwind
 │       │
 │       ├── api/
-│       │   └── client.ts            # Axios instance + all 24 API functions
+│       │   └── client.ts            # Axios instance + all 26 API functions
 │       │
 │       ├── hooks/
 │       │   └── useAuth.ts           # Auth state management hook
@@ -473,7 +482,7 @@ logora/
 │       │
 │       ├── pages/
 │       │   ├── Auth.tsx             # Login / register page
-│       │   ├── Home.tsx             # Topic listing + search + tags + debate suggestions
+│       │   ├── Home.tsx             # Dashboard: news ticker, side-by-side debates, RAG query
 │       │   ├── CreateTopic.tsx      # New debate form
 │       │   └── TopicDetail.tsx      # Three-column debate view (Discussion + Graph tabs)
 │       │
@@ -487,6 +496,8 @@ logora/
 │           ├── RAGQueryPanel.tsx     # "Ask the Debate" RAG query interface
 │           ├── DuplicateCheckModal.tsx # Duplicate detection results modal
 │           ├── DebateSuggestions.tsx  # Web search debate topic suggestions
+│           ├── NewsTicker.tsx        # Auto-scrolling live news ticker with "Debate This"
+│           ├── HomeRAGQuery.tsx      # Home page Graph RAG query panel with topic selector
 │           ├── CatchUpModal.tsx      # Newcomer catch-up briefing modal
 │           ├── SubmitArgumentForm.tsx # Argument form (full + inline modes)
 │           ├── NodeTypeBadge.tsx     # Colored node type pill
@@ -553,6 +564,14 @@ Full interactive docs available at `http://localhost:8000/docs` when the backend
 | `GET`  | `/api/suggestions` |  —   | Web search for debate topic suggestions |
 
 Query params: `category` (geopolitical/technology/economic/social/environment), `q` (custom search), `limit` (1-10, default 5)
+
+### News Feed
+
+| Method | Endpoint     | Auth | Description                             |
+| ------ | ------------ | :--: | --------------------------------------- |
+| `GET`  | `/api/news`  |  —   | Live news feed for the home page ticker |
+
+Query params: `category` (geopolitical/technology/economic/social/environment), `limit` (1-50, default 20)
 
 ### Health
 
