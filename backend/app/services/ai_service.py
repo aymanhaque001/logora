@@ -206,6 +206,104 @@ Return: {{"track_id": "<id or null>", "confidence": <0.0-1.0>}}"""
         return None
 
 
+# ── Catch-Up Briefing ─────────────────────────────────────────────────────────
+
+def generate_catch_up(
+    topic_question: str,
+    nodes_summary: list,
+    user_expertise: str | None = None,
+) -> dict:
+    if not is_available():
+        return _stub_catch_up(topic_question, nodes_summary)
+
+    system = """You are a neutral debate analyst helping a newcomer understand an ongoing structured debate.
+Summarise the current state so they can contribute meaningfully.
+Do NOT take sides. Categorise arguments clearly.
+Respond with valid JSON only. No markdown fences."""
+
+    node_text = "\n".join([
+        f"[{n['node_type'].upper()}] (state: {n['state']}) {n['content'][:180]}"
+        for n in nodes_summary[:50]
+    ])
+
+    expertise_hint = ""
+    if user_expertise:
+        expertise_hint = f"\nThe newcomer has expertise in: {user_expertise}. Tailor contribution suggestions accordingly."
+
+    user = f"""Topic: {topic_question}{expertise_hint}
+
+Arguments so far:
+{node_text or "No arguments yet."}
+
+Return JSON:
+{{
+  "summary": "<2-3 sentence overview of where the debate stands for a newcomer>",
+  "established_points": [
+    {{"claim": "<claim>", "basis": "<why it is established>"}}
+  ],
+  "refuted_points": [
+    {{"claim": "<original claim>", "rebuttal": "<what refuted it>"}}
+  ],
+  "active_debates": [
+    {{"topic": "<debate topic>", "sides": "<brief description of sides>"}}
+  ],
+  "contribution_suggestions": [
+    {{"opportunity_type": "gap|unchallenged_claim|unanswered_question", "suggestion": "<what the newcomer could do>"}}
+  ]
+}}"""
+
+    try:
+        raw = _call_claude(system, user)
+        raw = raw.strip().removeprefix("```json").removeprefix("```").removesuffix("```").strip()
+        data = json.loads(raw)
+        data["ai_powered"] = True
+        return data
+    except Exception as e:
+        print(f"[AI] generate_catch_up error: {e}", file=sys.stderr)
+        return _stub_catch_up(topic_question, nodes_summary)
+
+
+def _stub_catch_up(topic_question: str, nodes_summary: list) -> dict:
+    count = len(nodes_summary)
+    unchallenged = [n for n in nodes_summary if n.get("state") == "unchallenged"]
+    conceded = [n for n in nodes_summary if n.get("state") == "conceded"]
+    engaged = [n for n in nodes_summary if n.get("state") in ("engaged", "branched")]
+
+    established = [
+        {"claim": n["content"][:120], "basis": "Unchallenged by other participants"}
+        for n in unchallenged[:3]
+    ]
+    refuted = [
+        {"claim": n["content"][:120], "rebuttal": "Author conceded this point"}
+        for n in conceded[:3]
+    ]
+    active = [
+        {"topic": n["content"][:80], "sides": "Multiple participants engaged"}
+        for n in engaged[:3]
+    ]
+    suggestions = []
+    open_questions = [n for n in nodes_summary if n.get("node_type") == "open_question"]
+    for n in open_questions[:2]:
+        suggestions.append({
+            "opportunity_type": "unanswered_question",
+            "suggestion": f"Address: {n['content'][:100]}",
+        })
+    if unchallenged:
+        suggestions.append({
+            "opportunity_type": "unchallenged_claim",
+            "suggestion": "Challenge or support one of the unchallenged assertions with evidence.",
+        })
+
+    return {
+        "summary": f"This debate has {count} argument{'s' if count != 1 else ''} on the question: {topic_question}",
+        "established_points": established,
+        "refuted_points": refuted,
+        "active_debates": active,
+        "contribution_suggestions": suggestions,
+        "ai_powered": False,
+    }
+
+
 # ── Status ────────────────────────────────────────────────────────────────────
 
 def get_status() -> dict:

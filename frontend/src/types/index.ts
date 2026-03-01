@@ -165,6 +165,25 @@ export interface BriefingData {
   what_has_been_left_unaddressed: string;
 }
 
+export interface ContributionOpportunity {
+  argument_id: string | null;
+  content_snippet: string;
+  opportunity_type: "gap" | "unchallenged_claim" | "unanswered_question";
+  suggestion: string;
+}
+
+export interface CatchUpData {
+  is_newcomer: boolean;
+  established_points: Array<{ claim: string; basis: string }>;
+  refuted_points: Array<{ claim: string; rebuttal: string }>;
+  active_debates: Array<{ topic: string; sides: string }>;
+  contribution_opportunities: ContributionOpportunity[];
+  summary: string;
+  total_nodes: number;
+  total_participants: number;
+  ai_powered: boolean;
+}
+
 export interface TokenResponse {
   access_token: string;
   token_type: string;
