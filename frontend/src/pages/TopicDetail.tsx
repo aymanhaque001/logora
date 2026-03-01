@@ -28,6 +28,7 @@ import { SubmitArgumentForm } from '../components/SubmitArgumentForm'
 import { ExplorerSidebar } from '../components/ExplorerSidebar'
 import { ArgumentGraph } from '../components/ArgumentGraph'
 import { ArgumentMapExpanded } from '../components/ArgumentMapExpanded'
+import { RAGQueryPanel } from '../components/RAGQueryPanel'
 import { useAuth } from '../hooks/useAuth'
 import {
   MapPin,
@@ -464,77 +465,77 @@ export function TopicDetail() {
 
           {/* Tab content */}
           {centerTab === 'comments' ? (
-          <div className='flex-1 overflow-y-auto'>
-          <div className='max-w-2xl mx-auto px-5 py-5'>
-            {/* New top-level argument */}
-            {showForm ? (
-              <div className='mb-5 animate-slide-down'>
-                <SubmitArgumentForm
-                  topicId={topicId}
-                  onCancel={() => setShowForm(false)}
-                  onSuccess={handleSuccess}
-                />
-              </div>
-            ) : (
-              <button
-                onClick={() => {
-                  setShowForm(true)
-                  setReplyToId(null)
-                }}
-                className='w-full flex items-center justify-center gap-2 py-3 border border-dashed border-border hover:border-accent/50 text-sm text-text-tertiary hover:text-accent rounded-lg transition-colors font-medium mb-5'
-              >
-                <Plus size={15} /> Add an argument
-              </button>
-            )}
+            <div className='flex-1 overflow-y-auto'>
+              <div className='max-w-2xl mx-auto px-5 py-5'>
+                {/* New top-level argument */}
+                {showForm ? (
+                  <div className='mb-5 animate-slide-down'>
+                    <SubmitArgumentForm
+                      topicId={topicId}
+                      onCancel={() => setShowForm(false)}
+                      onSuccess={handleSuccess}
+                    />
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => {
+                      setShowForm(true)
+                      setReplyToId(null)
+                    }}
+                    className='w-full flex items-center justify-center gap-2 py-3 border border-dashed border-border hover:border-accent/50 text-sm text-text-tertiary hover:text-accent rounded-lg transition-colors font-medium mb-5'
+                  >
+                    <Plus size={15} /> Add an argument
+                  </button>
+                )}
 
-            {/* Arguments as comments */}
-            {rootNodes.length === 0 && !showForm && (
-              <div className='text-center py-20'>
-                <GitBranch
-                  size={24}
-                  className='text-text-tertiary mx-auto mb-2 opacity-30'
-                />
-                <p className='text-sm text-text-tertiary'>
-                  No arguments yet. Start the debate.
-                </p>
-              </div>
-            )}
+                {/* Arguments as comments */}
+                {rootNodes.length === 0 && !showForm && (
+                  <div className='text-center py-20'>
+                    <GitBranch
+                      size={24}
+                      className='text-text-tertiary mx-auto mb-2 opacity-30'
+                    />
+                    <p className='text-sm text-text-tertiary'>
+                      No arguments yet. Start the debate.
+                    </p>
+                  </div>
+                )}
 
-            <div className='space-y-1'>
-              {rootNodes.map((root, i) => (
-                <div
-                  key={root.id}
-                  className='animate-slide-up'
-                  style={{
-                    animationDelay: `${i * 0.03}s`,
-                    animationFillMode: 'backwards',
-                  }}
-                >
-                  <TreeNode
-                    node={root}
-                    childMap={childMap}
-                    topicId={topicId}
-                    onReply={handleReply}
-                    onDelete={(id) => deleteArgMutation.mutate(id)}
-                    onTransition={(id, state) =>
-                      transitionMutation.mutate({
-                        argumentId: id,
-                        newState: state,
-                      })
-                    }
-                    onTransitionSuccess={showToast}
-                    currentUserId={user?.id}
-                    depth={0}
-                    highlightedId={highlightedId}
-                    replyToId={replyToId}
-                    onCancelReply={() => setReplyToId(null)}
-                    onReplySuccess={handleSuccess}
-                  />
+                <div className='space-y-1'>
+                  {rootNodes.map((root, i) => (
+                    <div
+                      key={root.id}
+                      className='animate-slide-up'
+                      style={{
+                        animationDelay: `${i * 0.03}s`,
+                        animationFillMode: 'backwards',
+                      }}
+                    >
+                      <TreeNode
+                        node={root}
+                        childMap={childMap}
+                        topicId={topicId}
+                        onReply={handleReply}
+                        onDelete={(id) => deleteArgMutation.mutate(id)}
+                        onTransition={(id, state) =>
+                          transitionMutation.mutate({
+                            argumentId: id,
+                            newState: state,
+                          })
+                        }
+                        onTransitionSuccess={showToast}
+                        currentUserId={user?.id}
+                        depth={0}
+                        highlightedId={highlightedId}
+                        replyToId={replyToId}
+                        onCancelReply={() => setReplyToId(null)}
+                        onReplySuccess={handleSuccess}
+                      />
+                    </div>
+                  ))}
                 </div>
-              ))}
+              </div>
             </div>
-          </div>
-          </div>
           ) : (
             /* Graph View tab */
             <div className='flex-1'>
@@ -612,6 +613,9 @@ export function TopicDetail() {
               )}
             </div>
           </div>
+
+          {/* RAG Query */}
+          <RAGQueryPanel topicId={topicId} />
         </aside>
       </div>
 
