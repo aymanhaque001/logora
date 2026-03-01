@@ -125,3 +125,26 @@ export const getBriefing = (topicId: string) =>
 // ── Catch-Up ──────────────────────────────────────────────────────────────────
 export const getCatchUp = (topicId: string) =>
   api.get(`/topics/${topicId}/catch-up`).then((r) => r.data)
+
+// ── Web Search Suggestions ───────────────────────────────────────────────────
+export const getDebateSuggestions = (params?: {
+  category?: string
+  q?: string
+  limit?: number
+}) => api.get('/suggestions', { params: params ?? {} }).then((r) => r.data)
+
+// ── Duplicate Detection (Graph RAG) ─────────────────────────────────────────
+export const checkDuplicate = (topicId: string, content: string) =>
+  api
+    .post(`/topics/${topicId}/arguments/check-duplicate`, { content })
+    .then((r) => r.data)
+
+// ── RAG Query ────────────────────────────────────────────────────────────────
+export const ragQuery = (topicId: string, query: string) =>
+  api
+    .post(`/topics/${topicId}/arguments/rag-query`, { query })
+    .then((r) => r.data)
+
+// ── Vector Store Backfill ────────────────────────────────────────────────────
+export const backfillVectors = (topicId: string) =>
+  api.post(`/topics/${topicId}/arguments/backfill-vectors`).then((r) => r.data)

@@ -10,6 +10,8 @@ from app.schemas import ArgumentCreate, ArgumentUpdate, ArgumentNodeOut, EdgeOut
 from app.auth import get_current_user
 from app.services import ai_service
 from app.services.credibility import award_credibility
+from app.services import vector_store as vs
+from app.services import graph_rag
 
 router = APIRouter(prefix="/api/topics/{topic_id}/arguments", tags=["arguments"])
 
@@ -155,6 +157,17 @@ def submit_argument(
         node.ai_summary = ai_summary
         db.commit()
         db.refresh(node)
+
+    # Index in vector store for Graph RAG
+    vs.add_argument(
+        argument_id=node.id,
+        content=node.content,
+        topic_id=topic_id,
+        node_type=node.node_type.value if hasattr(node.node_type, 'value') else node.node_type,
+        track_id=node.track_id,
+        author_id=node.author_id,
+        parent_id=node.parent_id,
+    )
 
     out = ArgumentNodeOut.model_validate(node)
     out.children_count = 0
@@ -415,3 +428,83 @@ def check_dormant_arguments(topic_id: str, db: Session = Depends(get_db)):
             transitioned_ids.append(node.id)
     db.commit()
     return {"checked": len(nodes), "transitioned_to_dormant": transitioned_ids}
+
+
+# ── Duplicate Detection (Graph RAG) ──────────────────────────────────────────
+
+@router.post("/check-duplicate")
+def check_duplicate(
+    topic_id: str,
+    payload: dict,
+    db: Session = Depends(get_db),
+):
+    """
+    Check if an argument is a duplicate before submission.
+    Uses vector search + graph expansion + Claude reasoning.
+    Body: { "content": "..." }
+    """
+    topic = db.query(Topic).filter(Topic.id == topic_id).first()
+    if not topic:
+        raise HTTPException(status_code=404, detail="Topic not found")
+
+    content = payload.get("content", "").strip()
+    if not content:
+        raise HTTPException(status_code=400, detail="content is required")
+
+    if not vs.is_available():
+        return {
+            "is_duplicate": False,
+            "confidence": 0.0,
+            "similar_arguments": [],
+            "explanation": "Vector store not available. Duplicate detection disabled.",
+            "suggestion": None,
+            "ai_powered": False,
+        }
+
+    result = graph_rag.check_duplicate(content, topic_id, db)
+    return result
+
+
+# ── RAG Query ─────────────────────────────────────────────────────────────────
+
+@router.post("/rag-query")
+def rag_query(
+    topic_id: str,
+    payload: dict,
+    db: Session = Depends(get_db),
+):
+    """
+    Graph RAG-powered question answering about a specific debate.
+    Body: { "query": "What evidence supports X?" }
+    """
+    topic = db.query(Topic).filter(Topic.id == topic_id).first()
+    if not topic:
+        raise HTTPException(status_code=404, detail="Topic not found")
+
+    query = payload.get("query", "").strip()
+    if not query:
+        raise HTTPException(status_code=400, detail="query is required")
+
+    result = graph_rag.rag_briefing(
+        topic_question=topic.canonical_question,
+        query=query,
+        topic_id=topic_id,
+        db=db,
+    )
+    return result
+
+
+# ── Vector Store Management ───────────────────────────────────────────────────
+
+@router.post("/backfill-vectors")
+def backfill_vectors(
+    topic_id: str,
+    db: Session = Depends(get_db),
+):
+    """Backfill all arguments for this topic into the vector store."""
+    topic = db.query(Topic).filter(Topic.id == topic_id).first()
+    if not topic:
+        raise HTTPException(status_code=404, detail="Topic not found")
+
+    count = vs.backfill_from_db(db)
+    return {"backfilled": count, "vector_store_status": vs.get_status()}
