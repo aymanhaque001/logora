@@ -169,7 +169,7 @@ export function ArgumentCard({
       id={`arg-${node.id}`}
       className={`group transition-all duration-200 ${
         isTerminal ? 'opacity-50' : ''
-      } ${highlighted ? 'ring-1 ring-accent ring-offset-1 ring-offset-surface-0 rounded-lg' : ''}`}
+      } ${highlighted ? 'ring-1 ring-accent ring-offset-1 ring-offset-surface-0 rounded-lg animate-pulse-node' : ''}`}
     >
       {/* Comment-style layout */}
       <div className='flex gap-3'>

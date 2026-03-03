@@ -148,7 +148,14 @@ export const preClassify = (
       content,
       parent_content: parentContent ?? null,
     })
-    .then((r) => r.data as { suggested_type: string; confidence: number; reasoning: string })
+    .then(
+      (r) =>
+        r.data as {
+          suggested_type: string
+          confidence: number
+          reasoning: string
+        },
+    )
 
 // ── Duplicate Detection (Graph RAG) ─────────────────────────────────────────
 export const checkDuplicate = (topicId: string, content: string) =>

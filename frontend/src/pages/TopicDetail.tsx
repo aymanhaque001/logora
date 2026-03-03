@@ -457,6 +457,40 @@ export function TopicDetail() {
         </div>
       </div>
 
+      {/* Briefing strip — visible above fold */}
+      {briefing?.summary && (
+        <div className='px-5 py-2.5 border-b border-border bg-accent/5 shrink-0 animate-slide-down'>
+          <div className='max-w-[1400px] mx-auto flex items-start gap-4'>
+            <p className='text-xs text-text-secondary leading-relaxed italic flex-1'>
+              <span className='not-italic font-semibold text-accent mr-1.5'>
+                briefing
+              </span>
+              {briefing.summary}
+            </p>
+            {briefing.key_positions.slice(0, 3).map((pos, i) => {
+              const colors: Record<string, string> = {
+                strong: 'bg-emerald-500/15 text-emerald-400',
+                moderate: 'bg-amber-500/15 text-amber-400',
+                weak: 'bg-red-500/15 text-red-400',
+              }
+              return (
+                <span
+                  key={i}
+                  style={{
+                    animationDelay: `${i * 80}ms`,
+                    animationFillMode: 'backwards',
+                  }}
+                  className={`shrink-0 hidden sm:inline-block animate-fade-in px-2 py-0.5 rounded text-[10px] font-medium max-w-[160px] truncate ${colors[pos.strength] ?? 'bg-surface-3 text-text-tertiary'}`}
+                  title={pos.position}
+                >
+                  {pos.position}
+                </span>
+              )
+            })}
+          </div>
+        </div>
+      )}
+
       {/* Three-column body */}
       <div className='flex-1 flex overflow-hidden'>
         {/* LEFT: Explorer sidebar with AI summaries */}
@@ -525,7 +559,7 @@ export function TopicDetail() {
                     }}
                     className='w-full flex items-center justify-center gap-2 py-3 border border-dashed border-border hover:border-accent/50 text-sm text-text-tertiary hover:text-accent rounded-lg transition-colors font-medium mb-5'
                   >
-                    <Plus size={15} /> Add an argument
+                    <Plus size={15} /> Add your take
                   </button>
                 )}
 
@@ -537,7 +571,7 @@ export function TopicDetail() {
                       className='text-text-tertiary mx-auto mb-2 opacity-30'
                     />
                     <p className='text-sm text-text-tertiary'>
-                      No arguments yet. Start the debate.
+                      No takes yet. Start the debate.
                     </p>
                   </div>
                 )}

@@ -84,6 +84,8 @@ class TopicOut(BaseModel):
     creator: UserOut
     node_count: int = 0
     track_count: int = 0
+    participant_count: int = 0
+    last_activity: Optional[datetime] = None
 
     class Config:
         from_attributes = True
@@ -172,6 +174,19 @@ class ArgumentNodeOut(BaseModel):
     updated_at: datetime
     author: UserOut
     children_count: int = 0
+
+    @field_validator('sources', mode='before')
+    @classmethod
+    def coerce_sources(cls, v):
+        if not isinstance(v, list):
+            return []
+        result = []
+        for item in v:
+            if isinstance(item, dict):
+                result.append(item)
+            elif isinstance(item, str):
+                result.append({'title': item, 'url': item, 'source_type': 'article'})
+        return result
 
     class Config:
         from_attributes = True

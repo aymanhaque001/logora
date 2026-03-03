@@ -60,6 +60,14 @@ export default {
           '0%, 100%': { opacity: '1' },
           '50%': { opacity: '0.4' },
         },
+        'pulse-node': {
+          '0%, 100%': { boxShadow: '0 0 0 0 rgba(191,85,123,0)' },
+          '50%': { boxShadow: '0 0 0 6px rgba(191,85,123,0.18)' },
+        },
+        unfold: {
+          '0%': { opacity: '0', maxHeight: '0', overflow: 'hidden' },
+          '100%': { opacity: '1', maxHeight: '200px', overflow: 'hidden' },
+        },
       },
       animation: {
         'fade-in': 'fade-in 0.3s ease-out',
@@ -68,6 +76,8 @@ export default {
         'slide-in-right': 'slide-in-right 0.25s ease-out',
         'scale-in': 'scale-in 0.2s ease-out',
         'pulse-dot': 'pulse-dot 2s ease-in-out infinite',
+        'pulse-node': 'pulse-node 1.6s ease-in-out 3',
+        unfold: 'unfold 0.35s ease-out',
       },
     },
   },

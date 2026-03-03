@@ -67,6 +67,8 @@ export interface Topic {
   creator: User
   node_count: number
   track_count: number
+  participant_count: number
+  last_activity: string | null
 }
 
 export interface DiscourseTrack {

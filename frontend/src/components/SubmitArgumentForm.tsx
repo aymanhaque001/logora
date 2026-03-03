@@ -40,15 +40,21 @@ const EDGE_RELATIONSHIPS: { value: EdgeRelationship; label: string }[] = [
 ]
 
 // Plain-English labels for each node type (issue #29)
-const NODE_TYPE_LABELS: Record<NodeType, { primary: string; subtitle: string }> = {
-  assertion:     { primary: "I’m claiming…",           subtitle: 'assertion' },
-  counter:       { primary: 'I disagree…',             subtitle: 'counter' },
-  qualification: { primary: 'Yes, but…',               subtitle: 'qualification' },
-  exception:     { primary: 'This breaks down when…',  subtitle: 'exception' },
-  synthesis:     { primary: 'We both agree that…',     subtitle: 'synthesis' },
-  reframe:       { primary: 'The real question is…',   subtitle: 'reframe' },
-  open_question: { primary: 'Nobody has addressed…',  subtitle: 'open question' },
-  concession:    { primary: 'Fair point, I’ll grant…', subtitle: 'concession' },
+const NODE_TYPE_LABELS: Record<
+  NodeType,
+  { primary: string; subtitle: string }
+> = {
+  assertion: { primary: 'I’m claiming…', subtitle: 'assertion' },
+  counter: { primary: 'I disagree…', subtitle: 'counter' },
+  qualification: { primary: 'Yes, but…', subtitle: 'qualification' },
+  exception: { primary: 'This breaks down when…', subtitle: 'exception' },
+  synthesis: { primary: 'We both agree that…', subtitle: 'synthesis' },
+  reframe: { primary: 'The real question is…', subtitle: 'reframe' },
+  open_question: {
+    primary: 'Nobody has addressed…',
+    subtitle: 'open question',
+  },
+  concession: { primary: 'Fair point, I’ll grant…', subtitle: 'concession' },
 }
 
 interface Props {
@@ -77,7 +83,10 @@ export function SubmitArgumentForm({
   const [showAdvanced, setShowAdvanced] = useState(false)
   const [dupResult, setDupResult] = useState<DuplicateCheckResult | null>(null)
   const [checking, setChecking] = useState(false)
-  const [aiSuggestion, setAiSuggestion] = useState<{ type: NodeType; confidence: number } | null>(null)
+  const [aiSuggestion, setAiSuggestion] = useState<{
+    type: NodeType
+    confidence: number
+  } | null>(null)
   const [aiLoading, setAiLoading] = useState(false)
   const [userOverrode, setUserOverrode] = useState(false)
   const classifyTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -93,7 +102,11 @@ export function SubmitArgumentForm({
     classifyTimer.current = setTimeout(async () => {
       setAiLoading(true)
       try {
-        const result = await preClassify(topicId, content.trim(), replyTo?.content)
+        const result = await preClassify(
+          topicId,
+          content.trim(),
+          replyTo?.content,
+        )
         const suggestedType = result.suggested_type as NodeType
         setAiSuggestion({ type: suggestedType, confidence: result.confidence })
         if (!userOverrode) setNodeType(suggestedType)
@@ -103,8 +116,10 @@ export function SubmitArgumentForm({
         setAiLoading(false)
       }
     }, 900)
-    return () => { if (classifyTimer.current) clearTimeout(classifyTimer.current) }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    return () => {
+      if (classifyTimer.current) clearTimeout(classifyTimer.current)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [content, topicId])
 
   const toggleNuance = (tag: NuanceTag) => {
@@ -287,7 +302,7 @@ export function SubmitArgumentForm({
                     <span className='w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin' />
                   ) : (
                     <>
-                      <Send size={10} /> Reply
+                      <Send size={10} /> Post
                     </>
                   )}
                 </button>
@@ -424,13 +439,13 @@ export function SubmitArgumentForm({
         {/* Textarea first — AI classifies as you type */}
         <div>
           <label className='block text-sm font-medium text-text-secondary mb-1.5'>
-            Your argument
+            Your take
           </label>
           <textarea
             rows={4}
             value={content}
             onChange={(e) => setContent(e.target.value)}
-            placeholder='State your argument clearly…'
+            placeholder='State your take clearly…'
             className='input-field resize-none'
             required
             minLength={20}
@@ -462,7 +477,9 @@ export function SubmitArgumentForm({
         {/* Type picker — AI pre-selects, user can override */}
         <div>
           <div className='flex items-center justify-between mb-2'>
-            <label className='text-sm font-medium text-text-secondary'>Type</label>
+            <label className='text-sm font-medium text-text-secondary'>
+              Type
+            </label>
             <span className='text-[11px] flex items-center gap-1 h-4'>
               {aiLoading && (
                 <span className='w-2.5 h-2.5 border border-accent/40 border-t-accent rounded-full animate-spin' />
@@ -470,14 +487,19 @@ export function SubmitArgumentForm({
               {aiSuggestion && !aiLoading && (
                 <span className='flex items-center gap-1 text-accent'>
                   <Sparkles size={9} />
-                  AI suggests <em>{NODE_TYPE_LABELS[aiSuggestion.type].subtitle}</em>
+                  AI suggests{' '}
+                  <em>{NODE_TYPE_LABELS[aiSuggestion.type].subtitle}</em>
                   {userOverrode && (
-                    <span className='text-text-tertiary not-italic'> · overridden</span>
+                    <span className='text-text-tertiary not-italic'>
+                       · overridden
+                    </span>
                   )}
                 </span>
               )}
               {!aiSuggestion && !aiLoading && (
-                <span className='text-text-tertiary'>{NODE_TYPE_DESCRIPTIONS[nodeType]}</span>
+                <span className='text-text-tertiary'>
+                  {NODE_TYPE_DESCRIPTIONS[nodeType]}
+                </span>
               )}
             </span>
           </div>
@@ -508,8 +530,12 @@ export function SubmitArgumentForm({
                       <Sparkles size={8} className='text-accent opacity-70' />
                     </span>
                   )}
-                  <span className='block font-medium text-[11px] leading-snug'>{lbl.primary}</span>
-                  <span className='block text-[9px] text-text-tertiary mt-0.5 opacity-70'>{lbl.subtitle}</span>
+                  <span className='block font-medium text-[11px] leading-snug'>
+                    {lbl.primary}
+                  </span>
+                  <span className='block text-[9px] text-text-tertiary mt-0.5 opacity-70'>
+                    {lbl.subtitle}
+                  </span>
                 </label>
               )
             })}
@@ -626,7 +652,7 @@ export function SubmitArgumentForm({
               </span>
             ) : (
               <span className='flex items-center gap-2'>
-                <Send size={13} /> Submit
+                <Send size={13} /> Post your take
               </span>
             )}
           </button>

@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { Link } from 'react-router-dom'
-import { getTopics } from '../api/client'
+import { getTopics, getBriefing } from '../api/client'
 import { Topic } from '../types'
 import {
   MessageSquare,
@@ -10,11 +10,14 @@ import {
   Plus,
   GitBranch,
   ArrowUpRight,
+  Users,
+  Activity,
 } from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
 import { DebateSuggestions } from '../components/DebateSuggestions'
 import { NewsTicker } from '../components/NewsTicker'
 import { HomeRAGQuery } from '../components/HomeRAGQuery'
+import { useInView } from '../hooks/useInView'
 
 const TAG_COLORS: Record<string, string> = {
   geographic: 'bg-sky-500/15 text-sky-400',
@@ -26,8 +29,18 @@ const TAG_COLORS: Record<string, string> = {
 }
 
 function TopicCard({ topic }: { topic: Topic }) {
+  const [cardRef, inView] = useInView()
+  const { data: briefing } = useQuery({
+    queryKey: ['briefing', topic.id],
+    queryFn: () => getBriefing(topic.id),
+    enabled: inView && topic.node_count > 0,
+    staleTime: Infinity,
+  })
+
+  const activityTime = topic.last_activity ?? topic.created_at
+
   return (
-    <Link to={`/topics/${topic.id}`} className='group block card-hover p-3'>
+    <Link ref={cardRef} to={`/topics/${topic.id}`} className='group block card-hover p-3'>
       <div className='flex items-start justify-between gap-2 mb-1.5'>
         <h2 className='text-xs font-medium text-text-primary leading-snug group-hover:text-accent-hover transition-colors'>
           {topic.canonical_question}
@@ -41,6 +54,12 @@ function TopicCard({ topic }: { topic: Topic }) {
       {topic.description && (
         <p className='text-[11px] text-text-tertiary line-clamp-2 mb-2 leading-relaxed'>
           {topic.description}
+        </p>
+      )}
+
+      {briefing?.summary && (
+        <p className='text-[11px] text-accent/70 italic line-clamp-2 mb-2 leading-relaxed border-l-2 border-accent/30 pl-2'>
+          {briefing.summary}
         </p>
       )}
 
@@ -73,11 +92,14 @@ function TopicCard({ topic }: { topic: Topic }) {
         <span className='flex items-center gap-1'>
           <MessageSquare size={10} /> {topic.node_count}
         </span>
-        <span className='flex items-center gap-1'>
-          <GitBranch size={10} /> {topic.track_count}
-        </span>
-        <span className='ml-auto'>
-          {formatDistanceToNow(new Date(topic.created_at), { addSuffix: true })}
+        {topic.participant_count > 0 && (
+          <span className='flex items-center gap-1'>
+            <Users size={10} /> {topic.participant_count}
+          </span>
+        )}
+        <span className='flex items-center gap-1 ml-auto'>
+          <Activity size={10} />
+          {formatDistanceToNow(new Date(activityTime), { addSuffix: true })}
         </span>
       </div>
     </Link>

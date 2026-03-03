@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.orm import Session
 from typing import List, Optional
+import time
 from app.database import get_db
 from app.models import Topic, DiscourseTrack, ArgumentNode, ArgumentEdge, User, TopicConnection
 from app.schemas import (
@@ -15,11 +16,24 @@ from app.services.credibility import award_credibility
 
 router = APIRouter(prefix="/api/topics", tags=["topics"])
 
+# Simple in-memory briefing cache — avoids redundant Claude calls.
+# Keyed by topic_id, value is (timestamp, BriefingData).
+_BRIEFING_CACHE: dict = {}
+_BRIEFING_TTL = 10 * 60  # 10 minutes
+
 
 def _enrich_topic(topic: Topic, db: Session) -> TopicOut:
+    from sqlalchemy import func
     out = TopicOut.model_validate(topic)
     out.node_count = db.query(ArgumentNode).filter(ArgumentNode.topic_id == topic.id).count()
     out.track_count = db.query(DiscourseTrack).filter(DiscourseTrack.topic_id == topic.id).count()
+    out.participant_count = db.query(
+        func.count(func.distinct(ArgumentNode.author_id))
+    ).filter(ArgumentNode.topic_id == topic.id).scalar() or 0
+    last = db.query(func.max(ArgumentNode.created_at)).filter(
+        ArgumentNode.topic_id == topic.id
+    ).scalar()
+    out.last_activity = last
     return out
 
 
@@ -265,6 +279,11 @@ def create_track(
 
 @router.get("/{topic_id}/briefing", response_model=BriefingData)
 def get_briefing(topic_id: str, db: Session = Depends(get_db)):
+    # Return cached result if still fresh
+    cached = _BRIEFING_CACHE.get(topic_id)
+    if cached and (time.time() - cached[0]) < _BRIEFING_TTL:
+        return cached[1]
+
     topic = db.query(Topic).filter(Topic.id == topic_id).first()
     if not topic:
         raise HTTPException(status_code=404, detail="Topic not found")
@@ -315,7 +334,7 @@ def get_briefing(topic_id: str, db: Session = Depends(get_db)):
 
     last_activity = max((n.updated_at for n in nodes), default=None) if nodes else None
 
-    return BriefingData(
+    result = BriefingData(
         summary=ai_data.get("summary", ""),
         key_positions=ai_data.get("key_positions", []),
         unaddressed_nodes=unaddressed_out,
@@ -328,6 +347,10 @@ def get_briefing(topic_id: str, db: Session = Depends(get_db)):
         main_areas_of_contention=ai_data.get("main_areas_of_contention", []),
         what_has_been_left_unaddressed=ai_data.get("what_has_been_left_unaddressed", ""),
     )
+
+    # Store in cache
+    _BRIEFING_CACHE[topic_id] = (time.time(), result)
+    return result
 
 
 # ── Catch-Up Briefing ────────────────────────────────────────────────────────
