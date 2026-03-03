@@ -309,3 +309,80 @@ As of today the database contains:
 - **48 debates** imported from Reddit r/changemyview (verified by community debate)
 - **951 argument nodes** across those debates
 - Source: `https://reddit.com/r/changemyview` (public JSON API, no auth required)
+
+---
+
+## Known UX Concerns & Improvement Areas
+
+This section documents honest friction points identified in the current product. Each concern has a corresponding GitHub issue linked for tracking.
+
+---
+
+### What Would Discourage Users
+
+#### The cold-start problem
+The home page with zero real community debates feels dead. Imported Reddit content fills the database but nobody is actively arguing — there are no live conversations, no sense of a community happening in real time. A new user who arrives and sees no activity immediately questions whether the platform is alive. ([#32](https://github.com/aymanhaque001/logora/issues/32), [#33](https://github.com/aymanhaque001/logora/issues/33))
+
+#### The vocabulary is a barrier
+"Assertion", "qualification", "reframe", "concession", "nuance tag", "discourse track" — these are accurate terms but they feel like homework. A first-time user has to learn a new taxonomy before they can say anything. Most people will close the tab before they figure out the difference between a `qualification` and an `exception`. ([#29](https://github.com/aymanhaque001/logora/issues/29), [#36](https://github.com/aymanhaque001/logora/issues/36))
+
+#### Submitting an argument requires too much effort
+The submission form asks users to: pick a node type, optionally tag nuances, optionally add sources, then wait for AI duplicate detection. That is a lot of friction for what most people experience as "I want to say something." Twitter and Reddit let you type and hit send. Crux asks you to classify your own thought before submitting it. ([#30](https://github.com/aymanhaque001/logora/issues/30))
+
+#### The graph only becomes useful with 20+ nodes
+With 5 nodes the graph looks sparse and pointless. The feature that makes the app interesting doesn't show up until there is already substantial content. New debates start ugly, which undermines first impressions of the platform's core differentiator. ([#33](https://github.com/aymanhaque001/logora/issues/33), [#34](https://github.com/aymanhaque001/logora/issues/34))
+
+#### No notifications, no feed, no reason to come back
+There is nothing pulling users back after their first contribution. No "someone replied to your argument", no daily digest, no trending topics. Once someone posts, they have no incentive to return and see if anyone engaged with them. ([#35](https://github.com/aymanhaque001/logora/issues/35), [#24](https://github.com/aymanhaque001/logora/issues/24))
+
+#### Login wall before any value is shown
+Unauthenticated visitors cannot browse debates, read arguments, or see graphs. They are asked to create an account before evaluating whether the app is worth their time. This is a significant conversion killer. ([#31](https://github.com/aymanhaque001/logora/issues/31))
+
+---
+
+### What Users Would Find Unattractive
+
+#### It feels like work, not conversation
+The design language signals effort: epistemic vocabulary, structured forms, AI classification. People don't want to *debate*, they want to *talk*. Even users who would enjoy the depth may be put off by how serious and academic it looks before they experience the payoff.
+
+#### The graph is intimidating before it is beautiful
+A first-time user clicking "graph" on a small debate sees a few boxes with handles and dagre-positioned nodes. It looks like a technical diagram, not an insight. The payoff — a rich knowledge mesh of connected ideas — only arrives with sufficient content that most new users never organically reach. ([#34](https://github.com/aymanhaque001/logora/issues/34))
+
+#### The dark plum theme reads as a developer tool
+The design is polished and distinctive, but dark purple UIs are strongly associated with developer tools and niche communities. This may self-select casual mainstream users away before they engage with the content.
+
+#### No visible social proof
+There are no participant counts on debate cards, no activity indicators, no signals that other people are here. Social platforms survive on social signals. Without them the app feels like you would be arguing into a void. ([#32](https://github.com/aymanhaque001/logora/issues/32))
+
+#### AI features are invisible when they work
+When AI correctly classifies a node, labels a nuance, or generates a concept summary, the user does not notice. AI is only visible when it is *wrong*, which creates a negative impression disproportionate to its actual value. The system needs better surface-level feedback for when AI is helping.
+
+#### Mobile is likely unusable
+The two-panel desktop layout, graph view, sidebar, and briefing room do not map to a phone screen. Debates happen on mobile. If the experience is broken on small screens, a large chunk of potential users never gets a second look. ([#23](https://github.com/aymanhaque001/logora/issues/23))
+
+---
+
+### The Underlying Tension
+
+The app is designed for the ~5% of users who want *structured*, *sourced*, *epistemic* discourse. That is a real and underserved audience — but they are hard to reach, hard to retain, and will demand high content quality from each other. The other 95% who stumble in will feel immediately out of their depth and leave, which further depresses content quality for the core audience.
+
+**The concept is genuinely differentiated.** The risk is that the interface enforces the concept before the user has been convinced the concept is worth their time.
+
+The single highest-ROI change: **allow public browsing without an account** and **show real activity signals on the home page.** Let visitors see debates, read arguments, and explore the graph before asking for anything. Make them *want* to participate before requiring a sign-up. ([#31](https://github.com/aymanhaque001/logora/issues/31), [#32](https://github.com/aymanhaque001/logora/issues/32))
+
+---
+
+### Issue Tracker Summary
+
+All concerns above have corresponding GitHub issues:
+
+| Issue | Title | Priority |
+|---|---|---|
+| [#29](https://github.com/aymanhaque001/logora/issues/29) | UX: Plain-English node type labels in submission form | High |
+| [#30](https://github.com/aymanhaque001/logora/issues/30) | UX: Collapse advanced fields behind toggle in submission form | High |
+| [#31](https://github.com/aymanhaque001/logora/issues/31) | Auth: Allow public read-only access without login | Critical |
+| [#32](https://github.com/aymanhaque001/logora/issues/32) | UX: Home page topic cards should show activity signals | High |
+| [#33](https://github.com/aymanhaque001/logora/issues/33) | UX: Better empty state for debates with zero arguments | Medium |
+| [#34](https://github.com/aymanhaque001/logora/issues/34) | UX: Lead with graph preview — make graph the default view | Medium |
+| [#35](https://github.com/aymanhaque001/logora/issues/35) | Retention: 'Replies to you' home page section | Medium |
+| [#36](https://github.com/aymanhaque001/logora/issues/36) | UX: First-time user onboarding — interactive explainer overlay | High |
