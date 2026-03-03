@@ -5,7 +5,7 @@ class Settings(BaseSettings):
     DATABASE_URL: str = "sqlite:///./logora.db"
     SECRET_KEY: str = "dev-secret-key-change-in-production"
     ANTHROPIC_API_KEY: str = ""
-    CLAUDE_MODEL: str = "claude-sonnet-4-6"
+    CLAUDE_MODEL: str = "claude-haiku-4-5"
     FRONTEND_URL: str = "http://localhost:5173"
 
     class Config:

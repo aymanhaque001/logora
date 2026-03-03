@@ -93,6 +93,7 @@ Debates naturally fragment into sub-themes. Logora organizes these into **curren
 Current names are always substantive and topic-specific (e.g., "Saudi Arabia normalization and whitewashing", "Mueller investigation and evidentiary standards") — never generic labels like "Pro" or "Con". A **re-discover** button lets you trigger full AI re-analysis at any time, which examines all arguments and identifies emergent thematic currents.
 
 Each current tracks:
+
 - **Concept chain** — the ordered sequence of arguments with AI-generated evolution summaries
 - **Activity level** — hot (active now), warm (recent), cool (quiet)
 - **Dominant node types** — what kinds of arguments dominate this current
@@ -546,21 +547,21 @@ Full interactive docs available at `http://localhost:8000/docs` when the backend
 
 ### Topics
 
-| Method   | Endpoint                      | Auth | Description                                       |
-| -------- | ----------------------------- | :--: | ------------------------------------------------- |
-| `GET`    | `/api/topics`                 |  —   | List topics (filter by `tag`, `search`, `status`) |
-| `POST`   | `/api/topics`                 |  ✓   | Create a new debate topic                         |
-| `GET`    | `/api/topics/{id}`            |  —   | Get topic details                                 |
-| `PATCH`  | `/api/topics/{id}`            |  ✓   | Update topic (creator only)                       |
-| `DELETE` | `/api/topics/{id}`            |  ✓   | Delete topic (creator only, no arguments)         |
-| `POST`   | `/api/topics/{id}/archive`    |  ✓   | Archive topic (creator only)                      |
-| `POST`   | `/api/topics/lifecycle/check` |  —   | Run lifecycle check on all topics                 |
-| `GET`    | `/api/topics/{id}/tracks`     |  —   | List currents (discourse tracks)                  |
-| `POST`   | `/api/topics/{id}/tracks`     |  ✓   | Create a current                                  |
-| `GET`    | `/api/topics/{id}/briefing`   |  —   | Get AI-generated briefing                         |
-| `GET`    | `/api/topics/{id}/catch-up`   |  ~   | Newcomer catch-up (personalized if authenticated) |
-| `GET`    | `/api/topics/{id}/current-flow` | —  | Get current web graph data (nodes + edges)        |
-| `POST`   | `/api/topics/{id}/recluster`  |  —   | Re-discover currents via AI (re-analyzes all arguments) |
+| Method   | Endpoint                        | Auth | Description                                             |
+| -------- | ------------------------------- | :--: | ------------------------------------------------------- |
+| `GET`    | `/api/topics`                   |  —   | List topics (filter by `tag`, `search`, `status`)       |
+| `POST`   | `/api/topics`                   |  ✓   | Create a new debate topic                               |
+| `GET`    | `/api/topics/{id}`              |  —   | Get topic details                                       |
+| `PATCH`  | `/api/topics/{id}`              |  ✓   | Update topic (creator only)                             |
+| `DELETE` | `/api/topics/{id}`              |  ✓   | Delete topic (creator only, no arguments)               |
+| `POST`   | `/api/topics/{id}/archive`      |  ✓   | Archive topic (creator only)                            |
+| `POST`   | `/api/topics/lifecycle/check`   |  —   | Run lifecycle check on all topics                       |
+| `GET`    | `/api/topics/{id}/tracks`       |  —   | List currents (discourse tracks)                        |
+| `POST`   | `/api/topics/{id}/tracks`       |  ✓   | Create a current                                        |
+| `GET`    | `/api/topics/{id}/briefing`     |  —   | Get AI-generated briefing                               |
+| `GET`    | `/api/topics/{id}/catch-up`     |  ~   | Newcomer catch-up (personalized if authenticated)       |
+| `GET`    | `/api/topics/{id}/current-flow` |  —   | Get current web graph data (nodes + edges)              |
+| `POST`   | `/api/topics/{id}/recluster`    |  —   | Re-discover currents via AI (re-analyzes all arguments) |
 
 ### Arguments
 

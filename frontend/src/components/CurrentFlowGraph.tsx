@@ -1,13 +1,6 @@
 import { useMemo, useState, useCallback, useEffect, useRef } from 'react'
 import type { CurrentFlowData, CurrentFlowNode } from '../types'
-import {
-  RefreshCw,
-  Flame,
-  Sun,
-  Snowflake,
-  Users,
-  MessageCircle,
-} from 'lucide-react'
+import { RefreshCw } from 'lucide-react'
 import {
   forceSimulation,
   forceLink,
@@ -24,27 +17,27 @@ import {
 
 const VIEW_W = 1000
 const VIEW_H = 600
-const ROOT_R = 42
-const MIN_R = 32
-const MAX_R = 62
+const ROOT_R = 38
+const MIN_R = 30
+const MAX_R = 56
 
-const ACTIVITY_CFG: Record<
+// Activity level → glow appearance
+const ACTIVITY_GLOW: Record<
   string,
-  { ring: string; label: string; Icon: typeof Flame }
+  { color: string; blur: number; outerOpacity: number; label: string }
 > = {
-  hot: { ring: '#ef4444', label: 'active now', Icon: Flame },
-  warm: { ring: '#f59e0b', label: 'recent', Icon: Sun },
-  cool: { ring: '#6e5a7e', label: 'quiet', Icon: Snowflake },
+  hot: { color: '#ff85b3', blur: 16, outerOpacity: 0.6, label: 'active' },
+  warm: { color: '#c97fa8', blur: 11, outerOpacity: 0.38, label: 'recent' },
+  cool: { color: '#7a6a8a', blur: 8, outerOpacity: 0.22, label: 'quiet' },
 }
 
-const EDGE_COLORS: Record<string, string> = {
-  supports: '#22c55e',
-  challenges: '#ef4444',
-  qualifies: '#f59e0b',
-  refines: '#BF557B',
-  contradicts: '#dc2626',
-  synthesizes: '#14b8a6',
-  questions: '#6e5a7e',
+// Seeded pseudo-random for stable star field
+function seededRand(seed: number) {
+  let s = seed
+  return () => {
+    s = (s * 16807) % 2147483647
+    return (s - 1) / 2147483646
+  }
 }
 
 /* ═══════════════════════════════════════════════════
@@ -71,10 +64,10 @@ interface SimLink extends SimulationLinkDatum<SimNode> {
 
 /** Bubble radius proportional to take count */
 function bubbleRadius(nodeCount: number): number {
-  return Math.max(MIN_R, Math.min(MAX_R, 28 + nodeCount * 3))
+  return Math.max(MIN_R, Math.min(MAX_R, 24 + nodeCount * 2.8))
 }
 
-/** Wrap text into lines for SVG (simple word-wrap) */
+/** Wrap text into lines for SVG */
 function wrapText(text: string, maxCharsPerLine: number): string[] {
   const words = text.split(' ')
   const lines: string[] = []
@@ -88,7 +81,7 @@ function wrapText(text: string, maxCharsPerLine: number): string[] {
     }
   }
   if (current) lines.push(current)
-  return lines.slice(0, 3) // max 3 lines
+  return lines.slice(0, 3)
 }
 
 /* ═══════════════════════════════════════════════════
@@ -236,6 +229,18 @@ export function CurrentFlowGraph({
     }
   }, [initialNodes, initialLinks])
 
+  /* ── Star field (stable across renders) ────── */
+  const stars = useMemo(() => {
+    const rand = seededRand(42)
+    return Array.from({ length: 60 }, (_, i) => ({
+      id: i,
+      cx: rand() * VIEW_W,
+      cy: rand() * VIEW_H,
+      r: rand() * 0.9 + 0.3,
+      opacity: rand() * 0.35 + 0.08,
+    }))
+  }, [])
+
   /* ── Empty state ───────────────────────────── */
   if (data.currents.length === 0) {
     return (
@@ -248,29 +253,44 @@ export function CurrentFlowGraph({
   }
 
   return (
-    <div className='flex flex-col h-full bg-bg-primary'>
+    <div className='flex flex-col h-full' style={{ background: '#06040d' }}>
       {/* Header bar */}
-      <div className='flex items-center gap-2 px-3 py-2 bg-surface-2 border-b border-border-subtle text-xs shrink-0'>
-        <span className='text-text-tertiary font-medium'>current web</span>
+      <div
+        className='flex items-center gap-2 px-3 py-2 border-b border-border-subtle text-xs shrink-0'
+        style={{ background: 'rgba(255,255,255,0.02)' }}
+      >
+        <span
+          className='font-light tracking-widest uppercase text-[9px]'
+          style={{ color: 'rgba(255,255,255,0.3)', letterSpacing: '0.12em' }}
+        >
+          current web
+        </span>
         {onRecluster && (
           <button
             onClick={onRecluster}
             disabled={isReclustering}
-            className='flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-medium border border-border-subtle text-accent hover:bg-accent/10 transition-colors disabled:opacity-40 disabled:cursor-wait'
+            className='flex items-center gap-1 px-2 py-0.5 rounded text-[10px] transition-colors disabled:opacity-40 disabled:cursor-wait'
+            style={{
+              border: '1px solid rgba(255,255,255,0.1)',
+              color: 'rgba(255,255,255,0.35)',
+              background: 'transparent',
+            }}
             title='Re-analyze all arguments and discover emergent currents with AI'
           >
             <RefreshCw
               size={9}
               className={isReclustering ? 'animate-spin' : ''}
             />
-            {isReclustering ? 'discovering...' : 're-discover'}
+            {isReclustering ? 'discovering…' : 're-discover'}
           </button>
         )}
-        <span className='ml-auto text-text-tertiary'>
-          {data.currents.length} current
-          {data.currents.length !== 1 ? 's' : ''}
+        <span
+          className='ml-auto'
+          style={{ color: 'rgba(255,255,255,0.2)', fontSize: 9 }}
+        >
+          {data.currents.length} current{data.currents.length !== 1 ? 's' : ''}
           {data.edges.length > 0 &&
-            ` · ${data.edges.length} connection${data.edges.length !== 1 ? 's' : ''}`}
+            ` · ${data.edges.length} link${data.edges.length !== 1 ? 's' : ''}`}
         </span>
       </div>
 
@@ -284,48 +304,85 @@ export function CurrentFlowGraph({
           className='block'
         >
           <defs>
-            <filter id='glow' x='-50%' y='-50%' width='200%' height='200%'>
-              <feGaussianBlur stdDeviation='8' result='blur' />
-              <feComposite in='SourceGraphic' in2='blur' operator='over' />
-            </filter>
-            <filter
-              id='bubble-shadow'
-              x='-30%'
-              y='-30%'
-              width='160%'
-              height='160%'
-            >
-              <feDropShadow
-                dx='0'
-                dy='2'
-                stdDeviation='4'
-                floodColor='#000'
-                floodOpacity='0.4'
+            {/* Glow filters per activity level */}
+            {Object.entries(ACTIVITY_GLOW).map(([key, cfg]) => (
+              <filter
+                key={key}
+                id={`glow-${key}`}
+                x='-80%'
+                y='-80%'
+                width='260%'
+                height='260%'
+              >
+                <feGaussianBlur
+                  in='SourceGraphic'
+                  stdDeviation={cfg.blur}
+                  result='blur'
+                />
+                <feFlood
+                  floodColor={cfg.color}
+                  floodOpacity={cfg.outerOpacity}
+                  result='color'
+                />
+                <feComposite
+                  in='color'
+                  in2='blur'
+                  operator='in'
+                  result='glow'
+                />
+                <feMerge>
+                  <feMergeNode in='glow' />
+                  <feMergeNode in='SourceGraphic' />
+                </feMerge>
+              </filter>
+            ))}
+            {/* Root glow */}
+            <filter id='glow-root' x='-80%' y='-80%' width='260%' height='260%'>
+              <feGaussianBlur
+                in='SourceGraphic'
+                stdDeviation='14'
+                result='blur'
               />
+              <feFlood floodColor='#BF557B' floodOpacity='0.5' result='color' />
+              <feComposite in='color' in2='blur' operator='in' result='glow' />
+              <feMerge>
+                <feMergeNode in='glow' />
+                <feMergeNode in='SourceGraphic' />
+              </feMerge>
             </filter>
+            {/* Radial vignette */}
+            <radialGradient id='vignette' cx='50%' cy='50%' r='70%'>
+              <stop offset='40%' stopColor='#06040d' stopOpacity='0' />
+              <stop offset='100%' stopColor='#06040d' stopOpacity='0.7' />
+            </radialGradient>
           </defs>
 
-          {/* Subtle dot grid background */}
-          <pattern
-            id='dot-grid'
-            width='24'
-            height='24'
-            patternUnits='userSpaceOnUse'
-          >
-            <circle cx='12' cy='12' r='0.7' fill='#2e1f3a' />
-          </pattern>
-          <rect width={VIEW_W} height={VIEW_H} fill='url(#dot-grid)' />
+          {/* Deep space background */}
+          <rect width={VIEW_W} height={VIEW_H} fill='#06040d' />
+
+          {/* Star field */}
+          {stars.map((s) => (
+            <circle
+              key={s.id}
+              cx={s.cx}
+              cy={s.cy}
+              r={s.r}
+              fill='white'
+              opacity={s.opacity}
+            />
+          ))}
+
+          {/* Vignette overlay */}
+          <rect width={VIEW_W} height={VIEW_H} fill='url(#vignette)' />
 
           {/* ── Edges ──────────────────────────── */}
           {links.map((l) => {
             const src = l.source as SimNode
             const tgt = l.target as SimNode
             if (!src.x || !src.y || !tgt.x || !tgt.y) return null
-
-            const isHoverRelated = hoveredId === src.id || hoveredId === tgt.id
+            const isRelated = hoveredId === src.id || hoveredId === tgt.id
 
             if (l.isRootLink) {
-              // Root → current: thin dotted line
               return (
                 <line
                   key={l.id}
@@ -333,134 +390,130 @@ export function CurrentFlowGraph({
                   y1={src.y}
                   x2={tgt.x}
                   y2={tgt.y}
-                  stroke='#BF557B'
-                  strokeWidth={1.5}
-                  strokeDasharray='4 6'
-                  opacity={isHoverRelated ? 0.5 : 0.15}
-                  style={{ transition: 'opacity 0.3s ease' }}
+                  stroke='white'
+                  strokeWidth={1}
+                  strokeDasharray='3 8'
+                  opacity={isRelated ? 0.22 : 0.07}
+                  style={{ transition: 'opacity 0.4s ease' }}
                 />
               )
             }
 
-            // Cross-current edge: coloured by relationship type
-            const color = EDGE_COLORS[l.relationshipTypes[0]] ?? '#6e5a7e'
-            const thick = Math.max(1.5, Math.min(5, l.weight * 1.2))
-
-            // Curved edge via midpoint offset
+            // Cross-current edge — curved
             const mx = (src.x + tgt.x) / 2
             const my = (src.y + tgt.y) / 2
             const dx = tgt.x - src.x
             const dy = tgt.y - src.y
             const dist = Math.sqrt(dx * dx + dy * dy) || 1
-            const curvature = Math.min(30, dist * 0.15)
             const nx = -dy / dist
             const ny = dx / dist
-            const cx = mx + nx * curvature
-            const cy = my + ny * curvature
+            const curve = Math.min(28, dist * 0.14)
+            const qx = mx + nx * curve
+            const qy = my + ny * curve
 
             return (
               <g key={l.id}>
                 <path
-                  d={`M ${src.x} ${src.y} Q ${cx} ${cy} ${tgt.x} ${tgt.y}`}
+                  d={`M ${src.x} ${src.y} Q ${qx} ${qy} ${tgt.x} ${tgt.y}`}
                   fill='none'
-                  stroke={color}
-                  strokeWidth={thick}
+                  stroke='white'
+                  strokeWidth={Math.max(0.8, Math.min(2.5, l.weight * 0.9))}
                   strokeLinecap='round'
-                  opacity={isHoverRelated ? 0.7 : 0.3}
-                  style={{ transition: 'opacity 0.3s ease' }}
+                  opacity={isRelated ? 0.3 : 0.1}
+                  style={{ transition: 'opacity 0.4s ease' }}
                 />
-                {/* Relationship label at midpoint */}
-                {isHoverRelated && (
+                {isRelated && (
                   <text
-                    x={cx}
-                    y={cy - 8}
+                    x={qx}
+                    y={qy - 8}
                     textAnchor='middle'
-                    fill={color}
-                    fontSize='9'
+                    fill='rgba(255,255,255,0.45)'
+                    fontSize='8.5'
                     fontFamily='Work Sans, sans-serif'
-                    opacity={0.9}
                   >
-                    {l.weight}× {l.relationshipTypes[0]}
+                    {l.relationshipTypes[0] ?? 'linked'} ×{l.weight}
                   </text>
                 )}
               </g>
             )
           })}
 
-          {/* ── Root node (debate question) ───── */}
+          {/* ── Root node ──────────────────────── */}
           {nodes
             .filter((n) => n.isRoot)
             .map((n) => {
               const isHovered = hoveredId === n.id
               return (
-                <g key={n.id}>
+                <g
+                  key={n.id}
+                  onMouseEnter={() => setHoveredId(n.id)}
+                  onMouseLeave={() => setHoveredId(null)}
+                >
                   {/* Outer pulse ring */}
                   <circle
                     cx={n.x}
                     cy={n.y}
+                    r={ROOT_R}
                     fill='none'
                     stroke='#BF557B'
-                    strokeWidth='2'
-                    r={ROOT_R}
+                    strokeWidth='1'
                   >
                     <animate
                       attributeName='r'
-                      values={`${ROOT_R};${ROOT_R + 8};${ROOT_R}`}
-                      dur='4s'
+                      values={`${ROOT_R};${ROOT_R + 10};${ROOT_R}`}
+                      dur='5s'
                       repeatCount='indefinite'
                     />
                     <animate
                       attributeName='opacity'
-                      values='0.3;0.08;0.3'
-                      dur='4s'
+                      values='0.25;0.04;0.25'
+                      dur='5s'
                       repeatCount='indefinite'
                     />
                   </circle>
-
-                  {/* Core circle */}
+                  {/* Glow + core */}
                   <circle
                     cx={n.x}
                     cy={n.y}
                     r={ROOT_R}
-                    fill='#3B1342'
-                    stroke='#BF557B'
-                    strokeWidth='2.5'
-                    filter='url(#bubble-shadow)'
-                    opacity={isHovered ? 1 : 0.95}
+                    fill='#0e0816'
+                    stroke='rgba(191,85,123,0.7)'
+                    strokeWidth='1.5'
+                    filter='url(#glow-root)'
+                    opacity={isHovered ? 1 : 0.92}
                   />
-
-                  {/* Question mark */}
+                  {/* ? glyph */}
                   <text
                     x={n.x}
-                    y={n.y! + 1}
+                    y={(n.y ?? 0) + 1}
                     textAnchor='middle'
                     dominantBaseline='central'
-                    fill='#BF557B'
-                    fontSize='22'
-                    fontWeight='700'
+                    fill='rgba(191,85,123,0.9)'
+                    fontSize='20'
+                    fontWeight='300'
                     fontFamily='Work Sans, sans-serif'
                   >
                     ?
                   </text>
-
-                  {/* Label below root */}
+                  {/* Label below */}
                   <foreignObject
                     x={(n.x ?? 0) - 100}
-                    y={(n.y ?? 0) + ROOT_R + 8}
+                    y={(n.y ?? 0) + ROOT_R + 6}
                     width={200}
-                    height={40}
+                    height={38}
                   >
                     <div
                       style={{
-                        fontSize: 10,
-                        color: '#a893b8',
+                        fontSize: 9,
+                        color: 'rgba(255,255,255,0.22)',
                         textAlign: 'center',
                         fontFamily: 'Work Sans, sans-serif',
-                        lineHeight: 1.3,
+                        lineHeight: 1.4,
+                        letterSpacing: '0.01em',
                       }}
                     >
                       {data.root.label.length > 70
-                        ? data.root.label.slice(0, 67) + '...'
+                        ? data.root.label.slice(0, 67) + '…'
                         : data.root.label}
                     </div>
                   </foreignObject>
@@ -468,16 +521,15 @@ export function CurrentFlowGraph({
               )
             })}
 
-          {/* ── Current bubbles ─────────────────── */}
+          {/* ── Current nodes ──────────────────── */}
           {nodes
             .filter((n) => !n.isRoot)
             .map((n) => {
               const cfg =
-                ACTIVITY_CFG[n.current.activity_level] ?? ACTIVITY_CFG.cool
+                ACTIVITY_GLOW[n.current.activity_level] ?? ACTIVITY_GLOW.cool
               const isHovered = hoveredId === n.id
-              const accent = n.current.color_accent
               const r = n.r
-              const nameLines = wrapText(n.current.label, Math.floor(r / 3.8))
+              const nameLines = wrapText(n.current.label, Math.floor(r / 3.6))
 
               return (
                 <g
@@ -487,91 +539,82 @@ export function CurrentFlowGraph({
                   onClick={() => handleClick(n.id)}
                   style={{ cursor: 'pointer' }}
                 >
-                  {/* Activity glow ring */}
-                  <circle
-                    cx={n.x}
-                    cy={n.y}
-                    r={r + 4}
-                    fill='none'
-                    stroke={cfg.ring}
-                    strokeWidth={isHovered ? 3 : 1.5}
-                    opacity={isHovered ? 0.8 : 0.4}
-                    style={{ transition: 'all 0.3s ease' }}
-                  />
-
-                  {/* Bubble body */}
+                  {/* Glow aura */}
                   <circle
                     cx={n.x}
                     cy={n.y}
                     r={r}
-                    fill='#1a0e22'
-                    stroke={accent}
-                    strokeWidth={isHovered ? 2.5 : 1.5}
-                    filter='url(#bubble-shadow)'
-                    opacity={isHovered ? 1 : 0.92}
-                    style={{ transition: 'all 0.3s ease' }}
+                    fill='#0a0612'
+                    stroke={cfg.color}
+                    strokeWidth={isHovered ? 1.5 : 0.8}
+                    filter={`url(#glow-${n.current.activity_level ?? 'cool'})`}
+                    opacity={isHovered ? 1 : 0.88}
+                    style={{ transition: 'all 0.35s ease' }}
                   />
 
-                  {/* Current name (inside bubble) */}
+                  {/* Current name */}
                   {nameLines.map((line, i) => (
                     <text
                       key={i}
                       x={n.x}
-                      y={(n.y ?? 0) - (nameLines.length - 1) * 6 + i * 12 - 6}
+                      y={(n.y ?? 0) - (nameLines.length - 1) * 6.5 + i * 13 - 5}
                       textAnchor='middle'
                       dominantBaseline='central'
-                      fill={accent}
-                      fontSize={r > 45 ? 11 : 9.5}
-                      fontWeight='600'
+                      fill={
+                        isHovered
+                          ? 'rgba(255,255,255,0.88)'
+                          : 'rgba(255,255,255,0.62)'
+                      }
+                      fontSize={r > 44 ? 10.5 : 9}
+                      fontWeight='300'
                       fontFamily='Work Sans, sans-serif'
                       style={{
-                        textTransform: 'uppercase',
-                        letterSpacing: '0.03em',
+                        letterSpacing: '0.02em',
+                        transition: 'fill 0.3s ease',
                       }}
                     >
                       {line}
                     </text>
                   ))}
 
-                  {/* Stats row inside bubble */}
+                  {/* Stats */}
                   <text
                     x={n.x}
-                    y={(n.y ?? 0) + (nameLines.length - 1) * 6 + 10}
+                    y={(n.y ?? 0) + (nameLines.length - 1) * 6.5 + 10}
                     textAnchor='middle'
                     dominantBaseline='central'
-                    fill='#a893b8'
-                    fontSize='8.5'
+                    fill='rgba(255,255,255,0.22)'
+                    fontSize='7.5'
                     fontFamily='Work Sans, sans-serif'
                   >
-                    {n.current.node_count} takes · {n.current.participant_count}{' '}
-                    people
+                    {n.current.node_count} takes · {n.current.participant_count}
+                    p
                   </text>
 
-                  {/* Expanded info on hover — summary tooltip */}
+                  {/* Hover tooltip */}
                   {isHovered && n.current.evolution_summary && (
                     <foreignObject
                       x={(n.x ?? 0) - 110}
-                      y={(n.y ?? 0) - r - 56}
+                      y={(n.y ?? 0) - r - 52}
                       width={220}
-                      height={50}
+                      height={46}
                     >
                       <div
                         style={{
-                          background: 'rgba(26, 14, 34, 0.95)',
-                          border: '1px solid rgba(191, 85, 123, 0.3)',
-                          borderRadius: 8,
-                          padding: '6px 10px',
-                          fontSize: 9.5,
-                          color: '#c4b5d0',
+                          background: 'rgba(6, 4, 13, 0.92)',
+                          border: `1px solid ${cfg.color}33`,
+                          borderRadius: 6,
+                          padding: '5px 10px',
+                          fontSize: 9,
+                          color: 'rgba(255,255,255,0.5)',
                           fontFamily: 'Work Sans, sans-serif',
-                          lineHeight: 1.4,
+                          lineHeight: 1.45,
                           fontStyle: 'italic',
                           textAlign: 'center',
-                          backdropFilter: 'blur(8px)',
                         }}
                       >
                         {n.current.evolution_summary.length > 120
-                          ? n.current.evolution_summary.slice(0, 117) + '...'
+                          ? n.current.evolution_summary.slice(0, 117) + '…'
                           : n.current.evolution_summary}
                       </div>
                     </foreignObject>
@@ -583,35 +626,43 @@ export function CurrentFlowGraph({
       </div>
 
       {/* ── Legend ──────────────────────────────── */}
-      <div className='flex flex-wrap items-center gap-x-4 gap-y-1 px-3 py-2 border-t border-border-subtle text-[10px] text-text-tertiary shrink-0'>
-        <div className='flex items-center gap-1'>
-          <span
-            className='w-2.5 h-2.5 rounded-full border-2'
-            style={{ borderColor: '#BF557B', background: '#1a0e22' }}
-          />
-          <span>current — sized by takes</span>
-        </div>
-        <div className='flex items-center gap-1.5'>
-          <span
-            className='w-5 h-0.5 rounded-full opacity-50'
-            style={{ background: '#22c55e' }}
-          />
-          <span>cross-current link</span>
-        </div>
-        {Object.entries(ACTIVITY_CFG).map(([key, cfg]) => {
-          const Icon = cfg.Icon
-          return (
-            <div
-              key={key}
-              className='flex items-center gap-1'
-              style={{ color: cfg.ring }}
+      <div
+        className='flex flex-wrap items-center gap-x-5 gap-y-1 px-3 py-1.5 border-t border-border-subtle shrink-0'
+        style={{ background: 'rgba(255,255,255,0.015)' }}
+      >
+        {Object.entries(ACTIVITY_GLOW).map(([key, cfg]) => (
+          <div key={key} className='flex items-center gap-1.5'>
+            <span
+              style={{
+                display: 'inline-block',
+                width: 6,
+                height: 6,
+                borderRadius: '50%',
+                background: cfg.color,
+                boxShadow: `0 0 5px ${cfg.color}`,
+              }}
+            />
+            <span
+              style={{
+                fontSize: 9,
+                color: 'rgba(255,255,255,0.25)',
+                fontFamily: 'Work Sans, sans-serif',
+              }}
             >
-              <Icon size={9} /> {key}
-            </div>
-          )
-        })}
-        <span className='ml-auto text-text-tertiary/60 italic'>
-          click a current to explore
+              {cfg.label}
+            </span>
+          </div>
+        ))}
+        <span
+          style={{
+            marginLeft: 'auto',
+            fontSize: 9,
+            color: 'rgba(255,255,255,0.15)',
+            fontStyle: 'italic',
+            fontFamily: 'Work Sans, sans-serif',
+          }}
+        >
+          click to explore
         </span>
       </div>
     </div>
