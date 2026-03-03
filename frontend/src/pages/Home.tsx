@@ -10,7 +10,6 @@ import {
   Plus,
   GitBranch,
   ArrowUpRight,
-  Scale,
 } from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
 import { DebateSuggestions } from '../components/DebateSuggestions'
@@ -109,15 +108,11 @@ export function Home() {
     <div className='max-w-[1400px] mx-auto px-6 py-6 animate-fade-in'>
       {/* Header */}
       <div className='mb-5'>
-        <div className='flex items-center gap-2.5 mb-1'>
-          <Scale size={20} className='text-accent' />
-          <h1 className='text-lg font-semibold text-text-primary tracking-tight'>
-            Logora Dashboard
-          </h1>
-        </div>
-        <p className='text-xs text-text-tertiary ml-[30px]'>
-          Structured, evidence-based discourse — powered by real-time news and
-          Graph RAG.
+        <h1 className='text-lg font-light text-text-primary tracking-wide lowercase'>
+          dashboard
+        </h1>
+        <p className='text-xs font-light text-text-tertiary mt-0.5'>
+          structured discourse — powered by real-time news and graph RAG
         </p>
       </div>
 
@@ -143,7 +138,7 @@ export function Home() {
               to='/topics/new'
               className='flex items-center gap-1 btn-primary px-3 py-1.5 text-[11px] rounded-lg whitespace-nowrap'
             >
-              <Plus size={12} /> New Debate
+              <Plus size={12} /> new debate
             </Link>
           </div>
 

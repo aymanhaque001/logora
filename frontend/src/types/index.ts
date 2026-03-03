@@ -108,6 +108,7 @@ export interface ArgumentNode {
 
 export interface GraphNode {
   id: string
+  topic_id: string
   content: string
   ai_summary: string | null
   node_type: NodeType
@@ -131,6 +132,34 @@ export interface GraphEdge {
 export interface GraphData {
   nodes: GraphNode[]
   edges: GraphEdge[]
+}
+
+export interface TopicConnection {
+  id: string
+  from_topic_id: string
+  to_topic_id: string
+  from_node_id: string | null
+  to_node_id: string | null
+  relationship_type: string
+  description: string | null
+  created_by: string
+  created_at: string
+  from_topic_question: string
+  to_topic_question: string
+}
+
+export interface MeshGraphEdge {
+  id: string
+  source: string
+  target: string
+  relationship_type: string
+  is_cross_topic: boolean
+}
+
+export interface MeshGraphData {
+  nodes: GraphNode[]
+  edges: MeshGraphEdge[]
+  topic_labels: Record<string, string>
 }
 
 export interface BriefingData {

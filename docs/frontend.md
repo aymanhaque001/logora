@@ -44,12 +44,12 @@ Dashboard-style layout with four zones:
 └─────────────────────────────┴──────────────────────────────┘
 ```
 
-| Zone                | Component            | Description                                                                    |
-| ------------------- | -------------------- | ------------------------------------------------------------------------------ |
-| News Ticker         | `NewsTicker`         | Auto-scrolling horizontal news cards from DuckDuckGo, "Debate This" buttons    |
-| RAG Query           | `HomeRAGQuery`       | Topic dropdown + query input, Graph RAG answers with retrieval stats           |
-| Active Debates      | Inline (Home.tsx)    | Topic cards with search, tag filters, status indicators, "New Debate" link     |
-| Suggested Debates   | `DebateSuggestions`  | AI-framed debate suggestions from news with category tabs and "Create" buttons |
+| Zone              | Component           | Description                                                                    |
+| ----------------- | ------------------- | ------------------------------------------------------------------------------ |
+| News Ticker       | `NewsTicker`        | Auto-scrolling horizontal news cards from DuckDuckGo, "Debate This" buttons    |
+| RAG Query         | `HomeRAGQuery`      | Topic dropdown + query input, Graph RAG answers with retrieval stats           |
+| Active Debates    | Inline (Home.tsx)   | Topic cards with search, tag filters, status indicators, "New Debate" link     |
+| Suggested Debates | `DebateSuggestions` | AI-framed debate suggestions from news with category tabs and "Create" buttons |
 
 ### Create Topic Page (`CreateTopic.tsx`)
 
@@ -433,22 +433,22 @@ Axios instance with base URL `/api` (proxied by Vite to `:8000` in development).
 
 Key interfaces mirroring backend schemas:
 
-| Type                      | Description                                                     |
-| ------------------------- | --------------------------------------------------------------- |
-| `User`                    | User profile with credibility, expert info                      |
-| `Topic`                   | Debate topic with tags, status, counts                          |
-| `DiscourseTrack`          | Sub-theme with node count                                       |
-| `ArgumentNode`            | Full argument with author, AI metadata, children count          |
-| `GraphNode`               | Argument formatted for graph visualization                      |
-| `GraphEdge`               | Edge formatted for graph visualization                          |
-| `GraphData`               | `{ nodes: GraphNode[], edges: GraphEdge[] }`                    |
-| `BriefingData`            | AI briefing with positions, health, tracks                      |
-| `CatchUpData`             | Newcomer briefing with established/refuted/active/opportunities |
-| `ContributionOpportunity` | Where a newcomer can contribute (gap/unchallenged/unanswered)   |
-| `DebateSuggestion`        | Web search suggestion with timeliness, tags, source             |
+| Type                      | Description                                                           |
+| ------------------------- | --------------------------------------------------------------------- |
+| `User`                    | User profile with credibility, expert info                            |
+| `Topic`                   | Debate topic with tags, status, counts                                |
+| `DiscourseTrack`          | Sub-theme with node count                                             |
+| `ArgumentNode`            | Full argument with author, AI metadata, children count                |
+| `GraphNode`               | Argument formatted for graph visualization                            |
+| `GraphEdge`               | Edge formatted for graph visualization                                |
+| `GraphData`               | `{ nodes: GraphNode[], edges: GraphEdge[] }`                          |
+| `BriefingData`            | AI briefing with positions, health, tracks                            |
+| `CatchUpData`             | Newcomer briefing with established/refuted/active/opportunities       |
+| `ContributionOpportunity` | Where a newcomer can contribute (gap/unchallenged/unanswered)         |
+| `DebateSuggestion`        | Web search suggestion with timeliness, tags, source                   |
 | `NewsArticle`             | News article for ticker with title, body, url, source, date, category |
-| `DuplicateCheckResult`    | Duplicate detection result with confidence, similar args        |
-| `RAGQueryResult`          | RAG Q&A response with answer, context count, retrieval stats    |
+| `DuplicateCheckResult`    | Duplicate detection result with confidence, similar args              |
+| `RAGQueryResult`          | RAG Q&A response with answer, context count, retrieval stats          |
 
 ---
 

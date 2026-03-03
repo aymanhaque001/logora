@@ -3,13 +3,13 @@ import { GraphNode, GraphEdge, NodeType, DiscourseTrack } from "../types";
 import { ChevronDown, ChevronRight, Search, Layers } from "lucide-react";
 
 const TYPE_DOTS: Record<NodeType, string> = {
-  assertion:     "#6366f1",
+  assertion:     "#BF557B",
   counter:       "#ef4444",
   qualification: "#f59e0b",
   exception:     "#f97316",
   synthesis:     "#22c55e",
   reframe:       "#a855f7",
-  open_question: "#6b7080",
+  open_question: "#6e5a7e",
   concession:    "#14b8a6",
 };
 
@@ -61,7 +61,7 @@ function ExplorerNode({
   const hasKids = item.children.length > 0;
   const isSelected = selectedId === n.id;
   const summary = n.ai_summary ?? (n.content.length > 60 ? n.content.slice(0, 60) + "\u2026" : n.content);
-  const dotColor = TYPE_DOTS[n.node_type] ?? "#6b7080";
+  const dotColor = TYPE_DOTS[n.node_type] ?? "#6e5a7e";
 
   return (
     <div>

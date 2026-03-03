@@ -95,6 +95,8 @@ class Topic(Base):
     location = Column(String, nullable=True)    # For geographic topics
     status = Column(SAEnum(TopicStatus), default=TopicStatus.active)
     created_by = Column(String, ForeignKey("users.id"), nullable=False)
+    source_url = Column(String, nullable=True)   # Original source (e.g. Reddit thread)
+    node_count = Column(Float, default=0)        # Cached argument count
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
@@ -161,3 +163,27 @@ class ArgumentEdge(Base):
 
     source = relationship("ArgumentNode", foreign_keys=[source_id], back_populates="outgoing_edges")
     target = relationship("ArgumentNode", foreign_keys=[target_id], back_populates="incoming_edges")
+
+
+# ── Cross-Topic Mesh Connections ───────────────────────────────────────────────
+
+class TopicConnection(Base):
+    """Links an argument node in one topic to an argument node in another topic,
+    forming the rhizomatic mesh across debates."""
+    __tablename__ = "topic_connections"
+
+    id = Column(String, primary_key=True, default=generate_id)
+    from_topic_id = Column(String, ForeignKey("topics.id"), nullable=False)
+    to_topic_id = Column(String, ForeignKey("topics.id"), nullable=False)
+    from_node_id = Column(String, ForeignKey("argument_nodes.id"), nullable=True)
+    to_node_id = Column(String, ForeignKey("argument_nodes.id"), nullable=True)
+    relationship_type = Column(String, default="related")  # related, extends, analogizes, challenges
+    description = Column(String, nullable=True)
+    created_by = Column(String, ForeignKey("users.id"), nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    from_topic = relationship("Topic", foreign_keys=[from_topic_id])
+    to_topic = relationship("Topic", foreign_keys=[to_topic_id])
+    from_node = relationship("ArgumentNode", foreign_keys=[from_node_id])
+    to_node = relationship("ArgumentNode", foreign_keys=[to_node_id])
+    creator = relationship("User", foreign_keys=[created_by])

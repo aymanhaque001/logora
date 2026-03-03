@@ -1,6 +1,17 @@
 import { useState } from 'react'
 import { registerUser, loginUser } from '../api/client'
-import { Scale } from 'lucide-react'
+
+/* Crux diamond mark */
+function CruxMark({ size = 32 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox='0 0 32 32' fill='none'>
+      <path
+        d='M0 16.024L15.976 32 32 15.976 16.024 0 0 16.024zm15.989 7.323l-7.336-7.336 14.694-.022-7.358 7.358z'
+        fill='#BF557B'
+      />
+    </svg>
+  )
+}
 
 interface Props {
   setAuth: (token: string, user: any) => void
@@ -42,13 +53,13 @@ export function Auth({ setAuth }: Props) {
   return (
     <div className='min-h-screen flex items-center justify-center px-4 py-12 bg-surface-0'>
       <div className='w-full max-w-sm animate-slide-up'>
-        <div className='text-center mb-8'>
-          <Scale size={24} className='text-accent mx-auto mb-3' />
-          <h1 className='text-xl font-semibold text-text-primary'>
-            Welcome to Logora
+        <div className='flex flex-col items-center mb-8'>
+          <CruxMark size={36} />
+          <h1 className='text-xl font-light text-text-primary lowercase tracking-wide'>
+            Crux
           </h1>
-          <p className='text-sm text-text-tertiary mt-1'>
-            Structured, evidence-based debate
+          <p className='text-sm font-light text-text-tertiary lowercase mt-1'>
+            argument intelligence
           </p>
         </div>
 

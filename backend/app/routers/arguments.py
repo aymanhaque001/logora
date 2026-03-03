@@ -151,8 +151,9 @@ def submit_argument(
     db.commit()
     db.refresh(node)
 
-    # Generate a short AI summary for graph display
-    ai_summary = ai_service.summarize_node(node.content)
+    # Generate a concept summary for knowledge-graph display
+    node_type_val = node.node_type.value if hasattr(node.node_type, 'value') else str(node.node_type)
+    ai_summary = ai_service.summarize_node(node.content, node_type_val)
     if ai_summary:
         node.ai_summary = ai_summary
         db.commit()
@@ -197,6 +198,7 @@ def get_graph(topic_id: str, db: Session = Depends(get_db)):
     graph_nodes = [
         GraphNode(
             id=n.id,
+            topic_id=n.topic_id,
             content=n.content,
             ai_summary=n.ai_summary,
             node_type=n.node_type,
@@ -508,3 +510,64 @@ def backfill_vectors(
 
     count = vs.backfill_from_db(db)
     return {"backfilled": count, "vector_store_status": vs.get_status()}
+
+
+# ── Batch Summarize ───────────────────────────────────────────────────────────
+
+@router.post("/batch-summarize")
+def batch_summarize(
+    topic_id: str,
+    db: Session = Depends(get_db),
+):
+    """
+    Generate / regenerate AI concept summaries for all nodes in this topic
+    that lack a proper summary. Uses a batched Claude call to keep cost minimal.
+    """
+    topic = db.query(Topic).filter(Topic.id == topic_id).first()
+    if not topic:
+        raise HTTPException(status_code=404, detail="Topic not found")
+
+    if not ai_service.is_available():
+        return {"updated": 0, "message": "AI not available — set ANTHROPIC_API_KEY in backend/.env"}
+
+    nodes = db.query(ArgumentNode).filter(ArgumentNode.topic_id == topic_id).all()
+
+    # Heuristic: a "real" summary is shorter than the content and doesn't
+    # just mirror its start.
+    def needs_summary(n: ArgumentNode) -> bool:
+        if not n.ai_summary:
+            return True
+        # If the summary is just the first chars of content, it's a truncated raw copy
+        return n.content.strip().startswith(n.ai_summary.rstrip('\u2026').strip()[:60])
+
+    pending = [
+        {
+            "id": n.id,
+            "content": n.content,
+            "node_type": n.node_type.value if hasattr(n.node_type, 'value') else str(n.node_type),
+        }
+        for n in nodes
+        if needs_summary(n)
+    ]
+
+    if not pending:
+        return {"updated": 0, "message": "All nodes already have summaries"}
+
+    updated = 0
+    # Process in batches of 30
+    batch_size = 30
+    for i in range(0, len(pending), batch_size):
+        batch = pending[i:i + batch_size]
+        summaries = ai_service.batch_summarize_nodes(batch)
+        for node_id, summary in summaries.items():
+            db.query(ArgumentNode).filter(ArgumentNode.id == node_id).update(
+                {"ai_summary": summary}
+            )
+            updated += 1
+        db.commit()
+
+    return {
+        "updated": updated,
+        "total_nodes": len(nodes),
+        "message": f"Generated concept summaries for {updated} nodes",
+    }

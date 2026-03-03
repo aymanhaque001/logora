@@ -7,27 +7,27 @@ export function useAuth() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    const token = localStorage.getItem('logora_token')
+    const token = localStorage.getItem('crux_token')
     if (!token) {
       setLoading(false)
       return
     }
     getMe()
       .then(setUser)
-      .catch(() => localStorage.removeItem('logora_token'))
+      .catch(() => localStorage.removeItem('crux_token'))
       .finally(() => setLoading(false))
   }, [])
 
-  const token = localStorage.getItem('logora_token')
+  const token = localStorage.getItem('crux_token')
 
   const logout = () => {
-    localStorage.removeItem('logora_token')
+    localStorage.removeItem('crux_token')
     setUser(null)
     window.location.href = '/'
   }
 
   const setAuth = (token: string, userData: User) => {
-    localStorage.setItem('logora_token', token)
+    localStorage.setItem('crux_token', token)
     setUser(userData)
   }
 

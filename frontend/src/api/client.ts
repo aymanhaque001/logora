@@ -7,7 +7,7 @@ const api = axios.create({
 
 // Attach JWT on every request
 api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('logora_token')
+  const token = localStorage.getItem('crux_token')
   if (token) config.headers.Authorization = `Bearer ${token}`
   return config
 })
@@ -152,3 +152,30 @@ export const ragQuery = (topicId: string, query: string) =>
 // ── Vector Store Backfill ────────────────────────────────────────────────────
 export const backfillVectors = (topicId: string) =>
   api.post(`/topics/${topicId}/arguments/backfill-vectors`).then((r) => r.data)
+
+// ── Batch Summarize ───────────────────────────────────────────────────────────
+export const batchSummarize = (topicId: string) =>
+  api.post(`/topics/${topicId}/arguments/batch-summarize`).then((r) => r.data)
+
+// ── Cross-Topic Mesh Connections ─────────────────────────────────────────────
+export const getTopicConnections = (topicId: string) =>
+  api.get(`/topics/${topicId}/connections`).then((r) => r.data)
+
+export const createTopicConnection = (
+  topicId: string,
+  data: {
+    to_topic_id: string
+    from_node_id?: string
+    to_node_id?: string
+    relationship_type?: string
+    description?: string
+  },
+) => api.post(`/topics/${topicId}/connections`, data).then((r) => r.data)
+
+export const deleteTopicConnection = (topicId: string, connId: string) =>
+  api.delete(`/topics/${topicId}/connections/${connId}`).then((r) => r.data)
+
+export const getMeshGraph = (topicIds: string[]) =>
+  api
+    .get('/topics/mesh', { params: { topic_ids: topicIds.join(',') } })
+    .then((r) => r.data)

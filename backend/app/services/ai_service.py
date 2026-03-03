@@ -160,20 +160,62 @@ def _stub_briefing(topic_question: str, nodes_summary: list, tracks: list) -> di
 
 # ── Node Summary ─────────────────────────────────────────────────────────────
 
-def summarize_node(content: str) -> Optional[str]:
-    """Generate a concise 1-sentence summary for display in graph nodes."""
+def summarize_node(content: str, node_type: str = "") -> Optional[str]:
+    """Distil an argument into its core epistemic concept for knowledge-graph display."""
     if not is_available():
         return None
 
-    system = "You are a debate analyst. Summarise an argument in one short sentence (max 12 words). Output only the sentence, no quotes, no punctuation at end."
-    user = f'Argument: "{content[:300]}"'
+    type_hint = f" This is a {node_type} argument." if node_type else ""
+    system = (
+        "You are a knowledge-graph curator distilling debate arguments into their core epistemic claim.\n"
+        "Rules:\n"
+        "- ONE sentence, max 18 words\n"
+        "- Lead with the CLAIM itself (not 'The author argues...')\n"
+        "- Capture the logical essence, not the rhetoric\n"
+        "- Output only the sentence, no quotes, no trailing punctuation"
+    )
+    user = f'Argument ({node_type}):{type_hint}\n"{content[:400]}"'
 
     try:
-        result = _call_claude(system, user).strip().strip('"').strip("'")
-        return result if result else None
+        result = _call_claude(system, user).strip().strip('"').strip("'").rstrip('.')
+        return result if len(result) > 5 else None
     except Exception as e:
         print(f"[AI] summarize_node error: {e}", file=sys.stderr)
         return None
+
+
+def batch_summarize_nodes(nodes: list[dict]) -> dict[str, str]:
+    """
+    Summarize a batch of nodes in a single Claude call.
+    nodes: list of {id, content, node_type}
+    Returns: {id: summary}
+    """
+    if not is_available() or not nodes:
+        return {}
+
+    lines = []
+    for i, n in enumerate(nodes[:40]):  # cap at 40 per call
+        lines.append(f"{i+1}. [{n['node_type'].upper()}] {n['content'][:300]}")
+
+    system = (
+        "You are a knowledge-graph curator. For each numbered argument below, write ONE sentence "
+        "(max 18 words) that captures its core epistemic claim. Lead with the claim itself. "
+        "Respond with ONLY a JSON object mapping number to summary, e.g. {\"1\": \"...\", \"2\": \"...\"}"
+    )
+    user = "\n".join(lines)
+
+    try:
+        raw = _call_claude(system, user).strip()
+        raw = raw.removeprefix("```json").removeprefix("```").removesuffix("```").strip()
+        numbered = json.loads(raw)
+        return {
+            nodes[int(k) - 1]["id"]: v.strip().rstrip(".")
+            for k, v in numbered.items()
+            if int(k) - 1 < len(nodes)
+        }
+    except Exception as e:
+        print(f"[AI] batch_summarize error: {e}", file=sys.stderr)
+        return {}
 
 
 # ── Track Detection ───────────────────────────────────────────────────────────

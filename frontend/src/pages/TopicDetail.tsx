@@ -12,6 +12,8 @@ import {
   deleteTopic,
   archiveTopic,
   getCatchUp,
+  getMeshGraph,
+  batchSummarize,
 } from '../api/client'
 import {
   ArgumentNode,
@@ -20,6 +22,7 @@ import {
   Topic,
   DiscourseTrack,
   CatchUpData,
+  MeshGraphData,
 } from '../types'
 import { BriefingRoom } from '../components/BriefingRoom'
 import { CatchUpModal } from '../components/CatchUpModal'
@@ -48,6 +51,8 @@ import {
   Maximize2,
   MessageSquare,
   Network,
+  Waves,
+  Brain,
 } from 'lucide-react'
 
 function buildChildMap(
@@ -182,6 +187,7 @@ export function TopicDetail() {
   const [showCatchUp, setShowCatchUp] = useState(false)
   const [centerTab, setCenterTab] = useState<'comments' | 'graph'>('comments')
   const [showExpandedMap, setShowExpandedMap] = useState(false)
+  const [meshMode, setMeshMode] = useState(false)
 
   const showToast = useCallback((message: string) => {
     setToast(message)
@@ -212,6 +218,11 @@ export function TopicDetail() {
     queryKey: ['catch-up', topicId],
     queryFn: () => getCatchUp(topicId),
     enabled: !catchUpDismissed,
+  })
+  const { data: meshData } = useQuery<MeshGraphData>({
+    queryKey: ['mesh', topicId],
+    queryFn: () => getMeshGraph([topicId]),
+    enabled: meshMode,
   })
 
   const childMap = useMemo(() => buildChildMap(nodes ?? []), [nodes])
@@ -258,6 +269,14 @@ export function TopicDetail() {
   const archiveTopicMutation = useMutation({
     mutationFn: () => archiveTopic(topicId),
     onSuccess: () => handleSuccess(),
+  })
+  const summarizeMutation = useMutation({
+    mutationFn: () => batchSummarize(topicId),
+    onSuccess: (res) => {
+      qc.invalidateQueries({ queryKey: ['graph', topicId] })
+      qc.invalidateQueries({ queryKey: ['arguments', topicId] })
+      showToast(`${res.updated ?? 0} concepts distilled`)
+    },
   })
 
   const handleExplorerNodeClick = useCallback((nodeId: string) => {
@@ -356,17 +375,39 @@ export function TopicDetail() {
               {graphData && graphData.nodes.length > 0 && (
                 <button
                   onClick={() => setShowExpandedMap(true)}
-                  className='flex items-center gap-1 px-2.5 py-1 text-xs border border-accent/30 rounded-md text-accent hover:bg-accent/10 transition-colors'
+                  className='flex items-center gap-1 px-2.5 py-1 text-xs border border-accent/30 rounded-lg text-accent hover:bg-accent/10 transition-colors'
                 >
-                  <Maximize2 size={11} /> Focus Mode
+                  <Maximize2 size={11} /> focus mode
                 </button>
               )}
+              <button
+                onClick={() => {
+                  setMeshMode((m) => !m)
+                  if (centerTab !== 'graph') setCenterTab('graph')
+                }}
+                className={`flex items-center gap-1 px-2.5 py-1 text-xs border rounded-lg transition-colors ${
+                  meshMode
+                    ? 'bg-accent text-white border-accent'
+                    : 'border-accent/30 text-accent hover:bg-accent/10'
+                }`}
+              >
+                <Waves size={11} /> mesh
+              </button>
+              <button
+                onClick={() => summarizeMutation.mutate()}
+                disabled={summarizeMutation.isPending}
+                title='Distill argument nodes into epistemic concept summaries'
+                className='flex items-center gap-1 px-2.5 py-1 text-xs border border-accent/30 rounded-lg text-accent hover:bg-accent/10 transition-colors disabled:opacity-50'
+              >
+                <Brain size={11} />
+                {summarizeMutation.isPending ? 'distilling…' : 'summarize'}
+              </button>
               {catchUpData && catchUpData.total_nodes > 0 && (
                 <button
                   onClick={() => setShowCatchUp(true)}
-                  className='flex items-center gap-1 px-2.5 py-1 text-xs border border-accent/30 rounded-md text-accent hover:bg-accent/10 transition-colors'
+                  className='flex items-center gap-1 px-2.5 py-1 text-xs border border-accent/30 rounded-lg text-accent hover:bg-accent/10 transition-colors'
                 >
-                  <Sparkles size={11} /> Catch Up
+                  <Sparkles size={11} /> catch up
                 </button>
               )}
               {user &&
@@ -377,9 +418,9 @@ export function TopicDetail() {
                       if (window.confirm('Archive this debate?'))
                         archiveTopicMutation.mutate()
                     }}
-                    className='flex items-center gap-1 px-2.5 py-1 text-xs border border-border rounded-md text-text-tertiary hover:text-amber-400 hover:bg-amber-500/10 hover:border-amber-500/20 transition-colors'
+                    className='flex items-center gap-1 px-2.5 py-1 text-xs border border-border rounded-lg text-text-tertiary hover:text-amber-400 hover:bg-amber-500/10 hover:border-amber-500/20 transition-colors'
                   >
-                    <Archive size={11} /> Archive
+                    <Archive size={11} /> archive
                   </button>
                 )}
               {user &&
@@ -390,14 +431,14 @@ export function TopicDetail() {
                       if (window.confirm('Delete permanently?'))
                         deleteTopicMutation.mutate()
                     }}
-                    className='flex items-center gap-1 px-2.5 py-1 text-xs border border-border rounded-md text-text-tertiary hover:text-red-400 hover:bg-red-500/10 hover:border-red-500/20 transition-colors'
+                    className='flex items-center gap-1 px-2.5 py-1 text-xs border border-border rounded-lg text-text-tertiary hover:text-red-400 hover:bg-red-500/10 hover:border-red-500/20 transition-colors'
                   >
-                    <Trash2 size={11} /> Delete
+                    <Trash2 size={11} /> delete
                   </button>
                 )}
               <button
                 onClick={() => setExplorerOpen(!explorerOpen)}
-                className='p-1.5 rounded-md text-text-tertiary hover:text-text-secondary hover:bg-surface-3 transition'
+                className='p-1.5 rounded-lg text-text-tertiary hover:text-text-secondary hover:bg-surface-3 transition'
                 title={explorerOpen ? 'Hide map' : 'Show map'}
               >
                 {explorerOpen ? (
@@ -546,6 +587,8 @@ export function TopicDetail() {
                   tracks={tracks}
                   onNodeClick={handleExplorerNodeClick}
                   onExpand={() => setShowExpandedMap(true)}
+                  meshData={meshMode ? meshData : undefined}
+                  currentTopicId={topicId}
                 />
               ) : (
                 <div className='flex flex-col items-center justify-center h-64 text-text-tertiary gap-2'>
@@ -600,7 +643,7 @@ export function TopicDetail() {
               {tracks.map((t) => (
                 <div
                   key={t.id}
-                  className='flex items-center justify-between text-xs text-text-secondary bg-surface-2 rounded-md px-3 py-2'
+                  className='flex items-center justify-between text-xs text-text-secondary bg-surface-2 rounded-lg px-3 py-2'
                 >
                   <span className='font-medium'>{t.name}</span>
                   <span className='text-text-tertiary'>{t.node_count}</span>

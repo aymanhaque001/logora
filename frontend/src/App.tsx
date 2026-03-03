@@ -5,11 +5,22 @@ import { TopicDetail } from './pages/TopicDetail'
 import { CreateTopic } from './pages/CreateTopic'
 import { Auth } from './pages/Auth'
 import { useAuth } from './hooks/useAuth'
-import { Scale } from 'lucide-react'
 
 const queryClient = new QueryClient({
   defaultOptions: { queries: { refetchOnWindowFocus: false, retry: 1 } },
 })
+
+/* Crux diamond mark — rotated square with triangular cutout */
+function CruxMark({ size = 18 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox='0 0 32 32' fill='none'>
+      <path
+        d='M0 16.024L15.976 32 32 15.976 16.024 0 0 16.024zm15.989 7.323l-7.336-7.336 14.694-.022-7.358 7.358z'
+        fill='#BF557B'
+      />
+    </svg>
+  )
+}
 
 function AppShell() {
   const { token, user, loading, setAuth, logout } = useAuth()
@@ -27,25 +38,25 @@ function AppShell() {
   return (
     <div className='min-h-screen flex flex-col'>
       {/* Navbar */}
-      <nav className='h-12 flex items-center justify-between px-5 border-b border-border bg-surface-1 shrink-0'>
-        <Link to='/' className='flex items-center gap-2 group'>
-          <Scale size={18} className='text-accent' />
-          <span className='text-sm font-semibold text-text-primary tracking-tight'>
-            Logora
+      <nav className='h-14 flex items-center justify-between px-5 border-b border-border bg-surface-1/80 backdrop-blur-md shrink-0'>
+        <Link to='/' className='flex items-center gap-2.5 group'>
+          <CruxMark size={20} />
+          <span className='text-sm font-light tracking-wide text-text-primary lowercase'>
+            Crux
           </span>
         </Link>
         <div className='flex items-center gap-3'>
-          <span className='text-xs text-text-tertiary'>
+          <span className='text-xs font-light text-text-tertiary'>
             {user?.display_name}
           </span>
           <button
             onClick={logout}
-            className='text-xs text-text-tertiary hover:text-text-secondary transition'
+            className='text-xs font-light text-text-tertiary hover:text-text-secondary transition'
           >
-            Sign out
+            sign out
           </button>
-          <div className='w-6 h-6 rounded-full bg-accent flex items-center justify-center'>
-            <span className='text-[10px] font-semibold text-white'>
+          <div className='w-7 h-7 rounded-full bg-accent/20 flex items-center justify-center'>
+            <span className='text-[11px] font-medium text-accent'>
               {user?.display_name?.[0]?.toUpperCase()}
             </span>
           </div>

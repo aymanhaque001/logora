@@ -194,6 +194,7 @@ class EdgeOut(BaseModel):
 
 class GraphNode(BaseModel):
     id: str
+    topic_id: str
     content: str
     ai_summary: Optional[str] = None
     node_type: NodeType
@@ -254,3 +255,44 @@ class CatchUpData(BaseModel):
     total_nodes: int
     total_participants: int
     ai_powered: bool = False
+
+
+# ── Cross-Topic Mesh ─────────────────────────────────────────────────────────
+
+class TopicConnectionCreate(BaseModel):
+    to_topic_id: str
+    from_node_id: Optional[str] = None
+    to_node_id: Optional[str] = None
+    relationship_type: str = "related"
+    description: Optional[str] = None
+
+
+class TopicConnectionOut(BaseModel):
+    id: str
+    from_topic_id: str
+    to_topic_id: str
+    from_node_id: Optional[str]
+    to_node_id: Optional[str]
+    relationship_type: str
+    description: Optional[str]
+    created_by: str
+    created_at: datetime
+    from_topic_question: str
+    to_topic_question: str
+
+    class Config:
+        from_attributes = True
+
+
+class MeshGraphEdge(BaseModel):
+    id: str
+    source: str
+    target: str
+    relationship_type: str
+    is_cross_topic: bool = False
+
+
+class MeshGraphData(BaseModel):
+    nodes: List[GraphNode]
+    edges: List[MeshGraphEdge]
+    topic_labels: dict  # topic_id -> short label

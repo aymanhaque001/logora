@@ -257,12 +257,12 @@ JWT tokens are signed with `SECRET_KEY` using the `HS256` algorithm. Tokens cont
 
 Logora is designed to work at multiple capability levels:
 
-| Level         | AI  | ChromaDB | DuckDuckGo | Experience                                                                           |
-| ------------- | --- | -------- | ---------- | ------------------------------------------------------------------------------------ |
+| Level         | AI  | ChromaDB | DuckDuckGo | Experience                                                                                    |
+| ------------- | --- | -------- | ---------- | --------------------------------------------------------------------------------------------- |
 | **Full**      | ✓   | ✓        | ✓          | All features: classification, briefings, RAG, duplicate detection, web suggestions, news feed |
-| **No AI**     | ✗   | ✓        | ✓          | Vector search works, stubs for classification/briefing, web search with stub framing |
-| **No Vector** | ✓   | ✗        | ✓          | AI classification/briefing works, no RAG/duplicate detection, web suggestions work   |
-| **Minimal**   | ✗   | ✗        | ✗          | Core debate platform: graph structure, state machine, credibility, manual tracks     |
+| **No AI**     | ✗   | ✓        | ✓          | Vector search works, stubs for classification/briefing, web search with stub framing          |
+| **No Vector** | ✓   | ✗        | ✓          | AI classification/briefing works, no RAG/duplicate detection, web suggestions work            |
+| **Minimal**   | ✗   | ✗        | ✗          | Core debate platform: graph structure, state machine, credibility, manual tracks              |
 
 The health endpoint (`GET /api/health`) reports the availability of each subsystem:
 

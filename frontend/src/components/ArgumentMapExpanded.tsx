@@ -13,6 +13,14 @@ import ReactFlow, {
   useReactFlow,
 } from 'reactflow'
 import dagre from 'dagre'
+import {
+  forceSimulation,
+  forceLink,
+  forceManyBody,
+  forceCenter,
+  forceCollide,
+  SimulationNodeDatum,
+} from 'd3-force'
 import 'reactflow/dist/style.css'
 import {
   GraphNode,
@@ -40,13 +48,19 @@ import {
   TreePine,
   Columns3,
   Radio,
+  Waves,
 } from 'lucide-react'
 
 /* ═══════════════════════════════════════════════════════════════════════
    CONSTANTS & TYPES
    ═══════════════════════════════════════════════════════════════════════ */
 
-type LayoutMode = 'hierarchy-tb' | 'hierarchy-lr' | 'radial' | 'cluster-track'
+type LayoutMode =
+  | 'hierarchy-tb'
+  | 'hierarchy-lr'
+  | 'radial'
+  | 'cluster-track'
+  | 'rhizome'
 type ColorMode = 'type' | 'state' | 'age' | 'connectivity'
 
 const LAYOUT_OPTIONS: {
@@ -58,6 +72,7 @@ const LAYOUT_OPTIONS: {
   { value: 'hierarchy-lr', label: 'Left-Right', icon: Columns3 },
   { value: 'radial', label: 'Radial', icon: Radio },
   { value: 'cluster-track', label: 'By Track', icon: Network },
+  { value: 'rhizome', label: 'Rhizome', icon: Waves },
 ]
 
 const COLOR_OPTIONS: { value: ColorMode; label: string }[] = [
@@ -71,10 +86,10 @@ const EDGE_COLORS: Record<EdgeRelationship, string> = {
   supports: '#22c55e',
   challenges: '#ef4444',
   qualifies: '#f59e0b',
-  refines: '#6366f1',
+  refines: '#BF557B',
   contradicts: '#dc2626',
   synthesizes: '#14b8a6',
-  questions: '#6b7080',
+  questions: '#6e5a7e',
 }
 
 const STATE_COLORS: Record<
@@ -89,15 +104,15 @@ const STATE_COLORS: Record<
   },
   engaged: {
     bg: '#1e1b4b',
-    border: '#6366f1',
+    border: '#BF557B',
     text: '#c7d2fe',
-    accent: '#6366f1',
+    accent: '#BF557B',
   },
   refined: {
     bg: '#2e1065',
-    border: '#818cf8',
+    border: '#d4698f',
     text: '#ddd6fe',
-    accent: '#818cf8',
+    accent: '#d4698f',
   },
   branched: {
     bg: '#3b0764',
@@ -118,10 +133,10 @@ const STATE_COLORS: Record<
     accent: '#14b8a6',
   },
   dormant: {
-    bg: '#1a1d23',
-    border: '#6b7080',
-    text: '#9ca0ab',
-    accent: '#6b7080',
+    bg: '#1e1528',
+    border: '#6e5a7e',
+    text: '#a893b8',
+    accent: '#6e5a7e',
   },
 }
 
@@ -131,6 +146,48 @@ const NODE_H = 150
 /* ═══════════════════════════════════════════════════════════════════════
    LAYOUT ALGORITHMS
    ═══════════════════════════════════════════════════════════════════════ */
+
+interface SimNode extends SimulationNodeDatum {
+  id: string
+}
+
+function applyForceLayoutExpanded(nodes: Node[], edges: Edge[]): Node[] {
+  if (nodes.length === 0) return nodes
+  const simNodes: SimNode[] = nodes.map((n, i) => ({
+    id: n.id,
+    x: (i % 7) * 320 - 900,
+    y: Math.floor(i / 7) * 200 - 500,
+  }))
+  const idMap = new Map(simNodes.map((n) => [n.id, n]))
+  const simLinks = edges
+    .filter(
+      (e) => idMap.has(e.source as string) && idMap.has(e.target as string),
+    )
+    .map((e) => ({
+      source: idMap.get(e.source as string)!,
+      target: idMap.get(e.target as string)!,
+    }))
+  const sim = forceSimulation(simNodes)
+    .force(
+      'link',
+      forceLink(simLinks)
+        .id((d: any) => d.id)
+        .distance(360)
+        .strength(0.3),
+    )
+    .force('charge', forceManyBody().strength(-900))
+    .force('center', forceCenter(0, 0))
+    .force('collide', forceCollide(185).strength(1))
+    .stop()
+  for (let i = 0; i < 400; i++) sim.tick()
+  const posMap = new Map(
+    simNodes.map((n) => [n.id, { x: n.x ?? 0, y: n.y ?? 0 }]),
+  )
+  return nodes.map((n) => ({
+    ...n,
+    position: posMap.get(n.id) ?? { x: 0, y: 0 },
+  }))
+}
 
 function applyDagreLayout(
   nodes: Node[],
@@ -346,23 +403,23 @@ function getNodeColors(
       // Low connectivity = dim, high = bright
       if (t < 0.3)
         return {
-          bg: '#1a1d23',
-          border: '#3a3f4a',
-          text: '#9ca0ab',
-          accent: '#6b7080',
+          bg: '#1e1528',
+          border: '#3d2a50',
+          text: '#a893b8',
+          accent: '#6e5a7e',
         }
       if (t < 0.6)
         return {
           bg: '#1e1b4b',
-          border: '#6366f1',
+          border: '#BF557B',
           text: '#c7d2fe',
-          accent: '#6366f1',
+          accent: '#BF557B',
         }
       return {
         bg: '#312e81',
-        border: '#818cf8',
+        border: '#d4698f',
         text: '#e0e7ff',
-        accent: '#818cf8',
+        accent: '#d4698f',
       }
     }
   }
@@ -403,8 +460,8 @@ function ExpandedNodeCard({ data }: NodeProps<ExpandedNodeData>) {
     <div
       onClick={() => onNodeClick(n.id)}
       style={{
-        background: '#13161a',
-        border: `1.5px solid ${selected ? '#e2e4e9' : c.border}`,
+        background: '#160f1e',
+        border: `1.5px solid ${selected ? '#f0eaf4' : c.border}`,
         borderLeft: `4px solid ${c.border}`,
         borderRadius: 10,
         width: NODE_W,
@@ -423,7 +480,7 @@ function ExpandedNodeCard({ data }: NodeProps<ExpandedNodeData>) {
           background: c.border,
           width: 8,
           height: 8,
-          border: '2px solid #0d0f11',
+          border: '2px solid #0e0812',
         }}
       />
 
@@ -453,8 +510,8 @@ function ExpandedNodeCard({ data }: NodeProps<ExpandedNodeData>) {
             <span
               key={tag}
               style={{
-                background: '#22262e',
-                color: '#9ca0ab',
+                background: '#281d34',
+                color: '#a893b8',
                 fontSize: 9,
                 padding: '1px 5px',
                 borderRadius: 4,
@@ -468,7 +525,7 @@ function ExpandedNodeCard({ data }: NodeProps<ExpandedNodeData>) {
             <span
               style={{
                 background: 'rgba(99,102,241,0.15)',
-                color: '#818cf8',
+                color: '#d4698f',
                 fontSize: 9,
                 padding: '1px 5px',
                 borderRadius: 4,
@@ -488,7 +545,7 @@ function ExpandedNodeCard({ data }: NodeProps<ExpandedNodeData>) {
             margin: 0,
             fontSize: 11,
             lineHeight: 1.55,
-            color: '#e2e4e9',
+            color: '#f0eaf4',
           }}
         >
           {displayText}
@@ -499,7 +556,7 @@ function ExpandedNodeCard({ data }: NodeProps<ExpandedNodeData>) {
       <div
         style={{
           padding: '5px 10px 6px',
-          borderTop: '1px solid #22262e',
+          borderTop: '1px solid #281d34',
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
@@ -508,13 +565,13 @@ function ExpandedNodeCard({ data }: NodeProps<ExpandedNodeData>) {
         <div
           style={{
             fontSize: 10,
-            color: '#6b7080',
+            color: '#6e5a7e',
             display: 'flex',
             alignItems: 'center',
             gap: 4,
           }}
         >
-          <span style={{ color: '#9ca0ab', fontWeight: 500 }}>
+          <span style={{ color: '#a893b8', fontWeight: 500 }}>
             {n.author_display_name}
           </span>
           {n.track_name && (
@@ -526,8 +583,8 @@ function ExpandedNodeCard({ data }: NodeProps<ExpandedNodeData>) {
             style={{
               background: STATE_COLORS[n.state]?.accent
                 ? `${STATE_COLORS[n.state].accent}20`
-                : '#22262e',
-              color: STATE_COLORS[n.state]?.accent ?? '#6b7080',
+                : '#281d34',
+              color: STATE_COLORS[n.state]?.accent ?? '#6e5a7e',
               fontSize: 9,
               padding: '1px 5px',
               borderRadius: 4,
@@ -540,7 +597,7 @@ function ExpandedNodeCard({ data }: NodeProps<ExpandedNodeData>) {
             <span
               style={{
                 background: 'rgba(99,102,241,0.15)',
-                color: '#818cf8',
+                color: '#d4698f',
                 fontSize: 9,
                 padding: '1px 5px',
                 borderRadius: 4,
@@ -558,8 +615,8 @@ function ExpandedNodeCard({ data }: NodeProps<ExpandedNodeData>) {
               onToggle(n.id)
             }}
             style={{
-              background: collapsed ? c.accent : '#22262e',
-              color: collapsed ? '#fff' : '#9ca0ab',
+              background: collapsed ? c.accent : '#281d34',
+              color: collapsed ? '#fff' : '#a893b8',
               border: 'none',
               borderRadius: 4,
               padding: '2px 8px',
@@ -584,7 +641,7 @@ function ExpandedNodeCard({ data }: NodeProps<ExpandedNodeData>) {
           background: c.border,
           width: 8,
           height: 8,
-          border: '2px solid #0d0f11',
+          border: '2px solid #0e0812',
         }}
       />
     </div>
@@ -957,6 +1014,8 @@ function ExpandedMapInner({
         return applyRadialLayout(raw, rawEdges)
       case 'cluster-track':
         return applyClusterLayout(raw, rawEdges, visibleNodes)
+      case 'rhizome':
+        return applyForceLayoutExpanded(raw, rawEdges)
     }
   }, [
     visibleNodes,
@@ -982,16 +1041,16 @@ function ExpandedMapInner({
         label: e.relationship_type,
         animated: ['challenges', 'contradicts'].includes(e.relationship_type),
         style: {
-          stroke: EDGE_COLORS[e.relationship_type] ?? '#6b7080',
+          stroke: EDGE_COLORS[e.relationship_type] ?? '#6e5a7e',
           strokeWidth: 1.5,
         },
         markerEnd: {
           type: MarkerType.ArrowClosed,
-          color: EDGE_COLORS[e.relationship_type] ?? '#6b7080',
+          color: EDGE_COLORS[e.relationship_type] ?? '#6e5a7e',
           width: 14,
           height: 14,
         },
-        labelStyle: { fontSize: 10, fill: '#9ca0ab', fontWeight: 500 },
+        labelStyle: { fontSize: 10, fill: '#a893b8', fontWeight: 500 },
         labelBgStyle: { fill: 'rgba(19,22,26,0.95)' },
         labelBgPadding: [4, 6] as [number, number],
         labelBgBorderRadius: 4,
@@ -1216,7 +1275,7 @@ function ExpandedMapInner({
               setShowColorMenu(false)
             }}
           >
-            <Background color='#2a2f38' gap={24} size={1} />
+            <Background color='#2e1f3a' gap={24} size={1} />
             <Controls
               showInteractive={false}
               style={{
@@ -1227,12 +1286,12 @@ function ExpandedMapInner({
             <MiniMap
               nodeColor={(n) => {
                 const gn = n.data?.graphNode as GraphNode | undefined
-                if (!gn) return '#6b7080'
+                if (!gn) return '#6e5a7e'
                 return getNodeColors(gn, colorMode, graphNodes, graphEdges)
                   .accent
               }}
               maskColor='rgba(13,15,17,0.85)'
-              style={{ border: '1px solid #2a2f38', borderRadius: 8 }}
+              style={{ border: '1px solid #2e1f3a', borderRadius: 8 }}
               pannable
               zoomable
             />
@@ -1302,21 +1361,21 @@ function ExpandedMapInner({
                   <div className='flex items-center gap-1 text-text-tertiary'>
                     <span
                       className='w-2.5 h-2.5 rounded-sm'
-                      style={{ background: '#3a3f4a' }}
+                      style={{ background: '#3d2a50' }}
                     />{' '}
                     Low
                   </div>
                   <div className='flex items-center gap-1 text-text-tertiary'>
                     <span
                       className='w-2.5 h-2.5 rounded-sm'
-                      style={{ background: '#6366f1' }}
+                      style={{ background: '#BF557B' }}
                     />{' '}
                     Medium
                   </div>
                   <div className='flex items-center gap-1 text-text-tertiary'>
                     <span
                       className='w-2.5 h-2.5 rounded-sm'
-                      style={{ background: '#818cf8' }}
+                      style={{ background: '#d4698f' }}
                     />{' '}
                     High
                   </div>

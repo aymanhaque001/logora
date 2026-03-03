@@ -12,22 +12,22 @@ import { NODE_COLORS } from './ArgumentGraph'
 
 const STATE_COLORS: Record<ArgumentState, string> = {
   unchallenged: '#f59e0b',
-  engaged: '#6366f1',
-  refined: '#818cf8',
+  engaged: '#BF557B',
+  refined: '#d4698f',
   branched: '#a855f7',
   merged: '#22c55e',
   conceded: '#14b8a6',
-  dormant: '#6b7080',
+  dormant: '#6e5a7e',
 }
 
 const EDGE_COLORS: Record<EdgeRelationship, string> = {
   supports: '#22c55e',
   challenges: '#ef4444',
   qualifies: '#f59e0b',
-  refines: '#6366f1',
+  refines: '#BF557B',
   contradicts: '#dc2626',
   synthesizes: '#14b8a6',
-  questions: '#6b7080',
+  questions: '#6e5a7e',
 }
 
 /* ── types ────────────────────────────────────────────────────────────── */
@@ -327,7 +327,7 @@ export function MapAnalytics({ nodes, edges, onHighlightNode }: Props) {
                   label={t.name}
                   value={t.count}
                   total={totalNodes}
-                  color='#6366f1'
+                  color='#BF557B'
                 />
               ))}
           </div>
@@ -352,7 +352,7 @@ export function MapAnalytics({ nodes, edges, onHighlightNode }: Props) {
                     className='w-2 h-2 rounded-full shrink-0'
                     style={{
                       background:
-                        NODE_COLORS[node!.node_type]?.accent ?? '#6b7080',
+                        NODE_COLORS[node!.node_type]?.accent ?? '#6e5a7e',
                     }}
                   />
                   <span className='text-text-secondary flex-1 truncate group-hover:text-text-primary transition-colors'>
@@ -418,7 +418,7 @@ function DonutChart({
         cy={80}
         r={R}
         fill='none'
-        stroke='#22262e'
+        stroke='#281d34'
         strokeWidth={STROKE}
       />
       {segments.map(([key, value]) => {
@@ -433,7 +433,7 @@ function DonutChart({
             cy={80}
             r={R}
             fill='none'
-            stroke={colors[key] ?? '#6b7080'}
+            stroke={colors[key] ?? '#6e5a7e'}
             strokeWidth={STROKE}
             strokeDasharray={dashArray}
             strokeDashoffset={dashOffset}
@@ -447,7 +447,7 @@ function DonutChart({
         x={80}
         y={76}
         textAnchor='middle'
-        fill='#e2e4e9'
+        fill='#f0eaf4'
         fontSize={20}
         fontWeight={700}
         fontFamily='Inter, system-ui, sans-serif'
@@ -458,7 +458,7 @@ function DonutChart({
         x={80}
         y={94}
         textAnchor='middle'
-        fill='#6b7080'
+        fill='#6e5a7e'
         fontSize={10}
         fontFamily='Inter, system-ui, sans-serif'
       >

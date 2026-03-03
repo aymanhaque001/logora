@@ -567,9 +567,9 @@ Query params: `category` (geopolitical/technology/economic/social/environment), 
 
 ### News Feed
 
-| Method | Endpoint     | Auth | Description                             |
-| ------ | ------------ | :--: | --------------------------------------- |
-| `GET`  | `/api/news`  |  —   | Live news feed for the home page ticker |
+| Method | Endpoint    | Auth | Description                             |
+| ------ | ----------- | :--: | --------------------------------------- |
+| `GET`  | `/api/news` |  —   | Live news feed for the home page ticker |
 
 Query params: `category` (geopolitical/technology/economic/social/environment), `limit` (1-50, default 20)
 

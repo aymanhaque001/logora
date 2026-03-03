@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 200" width="400" height="200">
+  <!-- Layout B: "The Emblem" — Apple/Starbucks-inspired -->
+  <!-- Icon centered above text, monumental & iconic -->
+  
+  <rect width="400" height="200" rx="16" fill="#0a0a0a"/>
+
+  <!-- Asterisk icon — large, centered, brand violet -->
+  <g transform="translate(200, 68)" stroke="#8b5cf6" stroke-width="2.8" stroke-linecap="round">
+    <line x1="0" y1="-32" x2="0" y2="32"/>
+    <line x1="-27.7" y1="16" x2="27.7" y2="-16"/>
+    <line x1="-27.7" y1="-16" x2="27.7" y2="16"/>
+  </g>
+
+  <!-- crux — centered below icon -->
+  <text x="200" y="142" fill="#f4f4f5" text-anchor="middle"
+        font-family="'Avenir Next', 'Avenir', 'Montserrat', 'Helvetica Neue', sans-serif"
+        font-size="40" font-weight="600" letter-spacing="10">crux</text>
+
+  <!-- tagline — centered -->
+  <text x="200" y="168" fill="#52525b" text-anchor="middle"
+        font-family="'Avenir Next', 'Avenir', 'Montserrat', 'Helvetica Neue', sans-serif"
+        font-size="11" font-weight="500" letter-spacing="4">argument intelligence</text>
+</svg>
