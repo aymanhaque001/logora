@@ -229,7 +229,7 @@ export function BriefingRoom({ briefing }: Props) {
       {briefing.track_summaries.length > 0 && (
         <div>
           <h3 className='text-[10px] font-semibold text-text-tertiary uppercase tracking-wider mb-2 flex items-center gap-1.5'>
-            <MessageSquare size={11} /> Tracks
+            <MessageSquare size={11} /> Currents
           </h3>
           <div className='space-y-1'>
             {briefing.track_summaries.map((t) => (

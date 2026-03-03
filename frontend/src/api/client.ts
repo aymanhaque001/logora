@@ -68,6 +68,13 @@ export const createTrack = (
   data: { name: string; description?: string },
 ) => api.post(`/topics/${topicId}/tracks`, data).then((r) => r.data)
 
+// ── Current-Flow Graph ──────────────────────────────────────────────────────
+export const getCurrentFlow = (topicId: string) =>
+  api.get(`/topics/${topicId}/current-flow`).then((r) => r.data)
+
+export const reclusterCurrents = (topicId: string) =>
+  api.post(`/topics/${topicId}/recluster`).then((r) => r.data)
+
 // ── Arguments ─────────────────────────────────────────────────────────────────
 export const getArguments = (topicId: string, trackId?: string) =>
   api

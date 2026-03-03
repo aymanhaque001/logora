@@ -86,9 +86,16 @@ Any state ──→ dormant (30 days inactive) ──→ engaged (re-engaged)
 - **Conceded**: Author acknowledges their point was wrong (awards credibility)
 - **Dormant**: No activity for 30 days (can be re-engaged)
 
-### Discourse Tracks
+### Currents (Discourse Tracks)
 
-Debates naturally fragment into sub-themes. Logora organizes these into **discourse tracks** — either manually created or **auto-detected by AI**. When you submit an argument, Claude analyzes it and assigns it to an existing track or creates a new one if it introduces a novel theme.
+Debates naturally fragment into sub-themes. Logora organizes these into **currents** — thematic threads that emerge organically from the arguments. When you submit an argument, Claude analyzes it in context of the debate question and existing currents, then assigns it to an existing current or creates a new one.
+
+Current names are always substantive and topic-specific (e.g., "Saudi Arabia normalization and whitewashing", "Mueller investigation and evidentiary standards") — never generic labels like "Pro" or "Con". A **re-discover** button lets you trigger full AI re-analysis at any time, which examines all arguments and identifies emergent thematic currents.
+
+Each current tracks:
+- **Concept chain** — the ordered sequence of arguments with AI-generated evolution summaries
+- **Activity level** — hot (active now), warm (recent), cool (quiet)
+- **Dominant node types** — what kinds of arguments dominate this current
 
 ### Credibility System
 
@@ -141,7 +148,7 @@ This powers three features:
 
 - **Graph-based debate structure** — arguments as typed nodes with typed edges, not flat comments
 - **State machine** — arguments progress through lifecycle states with auto and manual transitions
-- **Discourse tracks** — auto-detected sub-themes that organize complex debates
+- **Currents** — AI-discovered thematic sub-topics that organize complex debates
 - **Credibility scoring** — rewards sourced arguments and intellectual honesty
 - **Nuance tags** — temporal, geographic, scale, conditional, population-specific, contested empirically
 - **Source citations** — attach URLs with titles and descriptions to arguments
@@ -150,7 +157,9 @@ This powers three features:
 
 ### AI-Powered Intelligence
 
-- **AI classification** — Claude auto-classifies argument type, assigns tracks, generates summaries
+- **AI classification** — Claude auto-classifies argument type, assigns to currents, generates summaries. Classification receives full topic context (debate question + existing current names) to ensure substantive track assignments.
+- **Dynamic current discovery** — `discover_currents` analyzes ALL arguments in a topic and identifies 3–7 emergent thematic currents. Re-cluster endpoint removes stale auto-detected currents and replaces them.
+- **Concept chain evolution** — AI generates one-sentence arc descriptions for each current ("Started with bold predictions, then encountered skepticism around timelines")
 - **AI briefings** — neutral debate analysis with health metrics and gap detection
 - **Duplicate / rehash detection** — Graph RAG checks if your argument already exists before submission
 - **Newcomer catch-up** — personalized briefing of established points, active debates, and contribution opportunities
@@ -160,6 +169,7 @@ This powers three features:
 
 ### Visualization & Analytics
 
+- **Current Web** — force-directed graph where each current is a bubble sized by take count, color-coded by activity level, with cross-current connection edges. d3-force simulation naturally clusters related currents together. Hover reveals evolution summaries, click opens the current drawer.
 - **Interactive argument map** — ReactFlow-powered graph with dagre layout
 - **Expandable focus mode** — fullscreen map with 4 layout modes (top-down, left-right, radial, cluster-by-track)
 - **4 color overlays** — node type, argument state, age gradient, connectivity intensity
@@ -168,9 +178,13 @@ This powers three features:
 
 ### Interface
 
+- **Progressive disclosure layout** — four-panel view: briefing panel (left), discussion/graph (centre), explorer sidebar (right), compose drawer (far right)
+- **Briefing panel** — persistent left-side panel with AI briefing, toggled via BookOpen icon, state persisted to localStorage
 - **Dashboard home page** — news ticker, side-by-side active/suggested debates, and home RAG query panel
 - **Comment-style feed** — threaded, scrollable argument cards with inline reply forms
-- **Dark theme** — full dark mode UI with indigo accents
+- **Compose drawer** — "Add your take" and reply buttons open SubmitArgumentForm as a slide-in right-side drawer
+- **Graph tab toggle** — switch between Current Web (flow view) and argument graph (node view)
+- **Dark theme** — `#3B1342` plum background, `#BF557B` rose accent, Work Sans Light typography
 - **JWT authentication** — secure token-based auth with bcrypt password hashing
 
 ---
@@ -186,10 +200,10 @@ This powers three features:
 │  │  News Ticker · Active Debates · Suggested Debates · RAG Query   │   │
 │  └──────────────────────────────────────────────────────────────────┘   │
 │  ┌──────────┐  ┌────────────────┐  ┌──────────────┐  ┌──────────────┐  │
-│  │ Explorer  │  │  Comment Feed  │  │  Briefing    │  │  RAG Query   │  │
-│  │ Sidebar   │  │  + Graph View  │  │  Room        │  │  Panel       │  │
-│  │ (tree)    │  │  + Focus Mode  │  │  + Tracks    │  │  "Ask the    │  │
-│  │           │  │  + Analytics   │  │  + Catch-Up  │  │   Debate"    │  │
+│  │ Briefing  │  │  Comment Feed  │  │  Explorer    │  │  Compose     │  │
+│  │ Panel     │  │  + Graph View  │  │  Sidebar     │  │  Drawer      │  │
+│  │ (AI)      │  │  + Current Web │  │  + Currents  │  │  + Reply     │  │
+│  │           │  │  + Focus Mode  │  │  + Catch-Up  │  │  + New Take  │  │
 │  └──────────┘  └────────────────┘  └──────────────┘  └──────────────┘  │
 │                                                                         │
 │  React 18 · TypeScript · TanStack Query · ReactFlow · Tailwind          │
@@ -257,6 +271,7 @@ This powers three features:
 | [ReactFlow](https://reactflow.dev/)                | 11      | Interactive graph visualization |
 | [Tailwind CSS](https://tailwindcss.com/)           | 3.4     | Utility-first styling           |
 | [dagre](https://github.com/dagrejs/dagre)          | 0.8     | Automatic graph layout          |
+| [d3-force](https://d3js.org/d3-force)              | 3.0     | Force-directed graph simulation |
 | [lucide-react](https://lucide.dev/)                | —       | Icons                           |
 | [date-fns](https://date-fns.org/)                  | —       | Date formatting                 |
 | [axios](https://axios-http.com/)                   | —       | HTTP client                     |
@@ -431,6 +446,8 @@ logora/
 │   ├── run.py                       # Uvicorn entry point
 │   ├── seed.py                      # Basic demo data seeder (5 users, 3 topics)
 │   ├── seed_expanded.py             # Full demo data seeder (12 users, 10 topics, 75+ args)
+│   ├── seed_from_web.py             # Reddit CMV importer with AI current discovery
+│   ├── fix_generic_tracks.py        # One-time migration: recluster generic tracks
 │   ├── requirements.txt
 │   ├── .env                         # Environment variables (not in git)
 │   ├── .env.example                 # Template for .env
@@ -452,7 +469,8 @@ logora/
 │       │   └── news.py              # /api/news — live news feed for ticker
 │       │
 │       └── services/
-│           ├── ai_service.py        # Claude AI (classify, brief, summarize, catch-up)
+│           ├── ai_service.py        # Claude AI (classify, brief, summarize, catch-up,
+│           │                        #   discover_currents, track evolution)
 │           ├── credibility.py       # Credibility scoring system
 │           ├── vector_store.py      # ChromaDB vector store (embed, search, backfill)
 │           ├── graph_rag.py         # Hybrid RAG (vector + graph walk + Claude analysis)
@@ -499,6 +517,7 @@ logora/
 │           ├── NewsTicker.tsx        # Auto-scrolling live news ticker with "Debate This"
 │           ├── HomeRAGQuery.tsx      # Home page Graph RAG query panel with topic selector
 │           ├── CatchUpModal.tsx      # Newcomer catch-up briefing modal
+│           ├── CurrentFlowGraph.tsx  # Force-directed current web (d3-force SVG)
 │           ├── SubmitArgumentForm.tsx # Argument form (full + inline modes)
 │           ├── NodeTypeBadge.tsx     # Colored node type pill
 │           └── StateBadge.tsx        # Argument state indicator
@@ -536,10 +555,12 @@ Full interactive docs available at `http://localhost:8000/docs` when the backend
 | `DELETE` | `/api/topics/{id}`            |  ✓   | Delete topic (creator only, no arguments)         |
 | `POST`   | `/api/topics/{id}/archive`    |  ✓   | Archive topic (creator only)                      |
 | `POST`   | `/api/topics/lifecycle/check` |  —   | Run lifecycle check on all topics                 |
-| `GET`    | `/api/topics/{id}/tracks`     |  —   | List discourse tracks                             |
-| `POST`   | `/api/topics/{id}/tracks`     |  ✓   | Create a discourse track                          |
+| `GET`    | `/api/topics/{id}/tracks`     |  —   | List currents (discourse tracks)                  |
+| `POST`   | `/api/topics/{id}/tracks`     |  ✓   | Create a current                                  |
 | `GET`    | `/api/topics/{id}/briefing`   |  —   | Get AI-generated briefing                         |
 | `GET`    | `/api/topics/{id}/catch-up`   |  ~   | Newcomer catch-up (personalized if authenticated) |
+| `GET`    | `/api/topics/{id}/current-flow` | —  | Get current web graph data (nodes + edges)        |
+| `POST`   | `/api/topics/{id}/recluster`  |  —   | Re-discover currents via AI (re-analyzes all arguments) |
 
 ### Arguments
 

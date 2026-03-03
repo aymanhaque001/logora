@@ -98,6 +98,18 @@ class TrackCreate(BaseModel):
     description: Optional[str] = None
 
 
+class TrackChainNode(BaseModel):
+    """A single step in a track's concept evolution chain."""
+    id: str
+    content_snippet: str           # ≤120 chars
+    ai_summary: Optional[str]      # one-liner from AI distillation
+    node_type: str
+    author_name: str
+    created_at: datetime
+    state: str
+    edge_from_previous: Optional[str] = None  # supports, challenges, qualifies, etc.
+
+
 class TrackOut(BaseModel):
     id: str
     topic_id: str
@@ -106,6 +118,10 @@ class TrackOut(BaseModel):
     auto_detected: bool
     created_at: datetime
     node_count: int = 0
+    # Concept chain — ordered list of arguments that form this track's evolution
+    chain: list[TrackChainNode] = []
+    # AI-generated evolution summary — how the concept shifted over time
+    evolution_summary: Optional[str] = None
 
     class Config:
         from_attributes = True
@@ -311,3 +327,33 @@ class MeshGraphData(BaseModel):
     nodes: List[GraphNode]
     edges: List[MeshGraphEdge]
     topic_labels: dict  # topic_id -> short label
+
+
+# ── Current-Flow Graph (flow-of-thought visualisation) ───────────────────────
+
+class CurrentFlowNode(BaseModel):
+    """A single current (discourse track) as a flow node."""
+    id: str                             # track id, or "root" for the question
+    label: str                          # track name or canonical question
+    node_count: int                     # number of takes in this current
+    participant_count: int              # unique authors
+    dominant_types: List[str]           # top node_type values
+    evolution_summary: Optional[str] = None
+    activity_level: str = "cool"        # "hot" | "warm" | "cool"
+    latest_activity: Optional[datetime] = None
+    color_accent: str = "#6e5a7e"       # accent colour for rendering
+
+
+class CurrentFlowEdge(BaseModel):
+    """Weighted edge between two currents (cross-current connections)."""
+    id: str
+    source: str
+    target: str
+    weight: int                         # number of cross-current argument edges
+    relationship_types: List[str]       # dominant relationship types
+
+
+class CurrentFlowData(BaseModel):
+    root: CurrentFlowNode               # the debate question as the origin
+    currents: List[CurrentFlowNode]
+    edges: List[CurrentFlowEdge]        # cross-current connections

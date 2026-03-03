@@ -398,24 +398,7 @@ for post in posts:
     db.add(topic)
     db.flush()
 
-    # ── Tracks ──────────────────────────────────────────────────────────────
-
-    track_pro = DiscourseTrack(topic_id=topic.id, name="Pro", description="Arguments for the thesis")
-    track_con = DiscourseTrack(topic_id=topic.id, name="Con", description="Arguments against the thesis")
-    track_nuance = DiscourseTrack(topic_id=topic.id, name="Nuance", description="Qualifications and synthesis")
-    db.add_all([track_pro, track_con, track_nuance])
-    db.flush()
-
-    track_for_type = {
-        "assertion": track_pro,
-        "counter": track_con,
-        "qualification": track_nuance,
-        "exception": track_nuance,
-        "synthesis": track_nuance,
-        "reframe": track_nuance,
-        "open_question": track_nuance,
-        "concession": track_pro,
-    }
+    # ── Tracks (created after nodes via AI discover_currents) ──────────────
 
     # ── OP assertion node ───────────────────────────────────────────────────
 
@@ -428,7 +411,7 @@ for post in posts:
 
     op_node = ArgumentNode(
         topic_id=topic.id,
-        track_id=track_pro.id,
+        track_id=None,
         author_id=op_user.id,
         content=post["body"][:800],
         node_type=NodeType.assertion,
@@ -464,7 +447,6 @@ for post in posts:
                     summary = h["summary"]
 
             node_type = safe_node_type(node_type_str)
-            track = track_for_type.get(node_type_str, track_con)
 
             author = get_or_create_bot_user(
                 f"reddit_{c['author'][:20]}",
@@ -475,7 +457,7 @@ for post in posts:
 
             arg_node = ArgumentNode(
                 topic_id=topic.id,
-                track_id=track.id,
+                track_id=None,
                 parent_id=parent_db_node.id,
                 author_id=author.id,
                 content=c["body"][:800],
@@ -506,12 +488,58 @@ for post in posts:
 
     build_nodes(comments, op_node, is_reply=False)
 
-    # Update node count on topic
+    # ── Discover thematic currents via AI ──────────────────────────────────
     topic.node_count = db.query(ArgumentNode).filter(ArgumentNode.topic_id == topic.id).count()
+    db.flush()
+    total_nodes = topic.node_count
+
+    if USE_AI and total_nodes >= 3:
+        try:
+            print("   Discovering thematic currents…")
+            from app.services.ai_service import discover_currents
+            all_args = db.query(ArgumentNode).filter(ArgumentNode.topic_id == topic.id).all()
+            arg_dicts = [{"id": str(a.id), "content": a.content[:400], "node_type": a.node_type.value} for a in all_args]
+            currents = discover_currents(canonical_question, arg_dicts)
+            arg_id_to_track: dict[str, str] = {}
+            for cur in currents:
+                track = DiscourseTrack(topic_id=topic.id, name=cur["name"], description=cur.get("description", ""), auto_detected=True)
+                db.add(track)
+                db.flush()
+                for aid in cur.get("argument_ids", []):
+                    arg_id_to_track[aid] = track.id
+                print(f"     → {cur['name']} ({len(cur.get('argument_ids', []))} takes)")
+            # Assign arguments to discovered tracks
+            for a in all_args:
+                tid = arg_id_to_track.get(str(a.id))
+                if tid:
+                    a.track_id = tid
+        except Exception as e:
+            print(f"   Current discovery failed ({e}), creating fallback tracks.")
+            # Fallback: create tracks by node_type families
+            _fb_pro = DiscourseTrack(topic_id=topic.id, name="Core claims", auto_detected=True)
+            _fb_con = DiscourseTrack(topic_id=topic.id, name="Challenges & rebuttals", auto_detected=True)
+            _fb_nuance = DiscourseTrack(topic_id=topic.id, name="Conditions & synthesis", auto_detected=True)
+            db.add_all([_fb_pro, _fb_con, _fb_nuance])
+            db.flush()
+            _type_map = {"assertion": _fb_pro, "concession": _fb_pro, "counter": _fb_con, "qualification": _fb_nuance, "exception": _fb_nuance, "synthesis": _fb_nuance, "reframe": _fb_nuance, "open_question": _fb_nuance}
+            for a in db.query(ArgumentNode).filter(ArgumentNode.topic_id == topic.id).all():
+                fb_track = _type_map.get(a.node_type.value, _fb_con)
+                a.track_id = fb_track.id
+    else:
+        # No AI or too few nodes — basic thematic fallback
+        _fb_pro = DiscourseTrack(topic_id=topic.id, name="Core claims", auto_detected=True)
+        _fb_con = DiscourseTrack(topic_id=topic.id, name="Challenges & rebuttals", auto_detected=True)
+        _fb_nuance = DiscourseTrack(topic_id=topic.id, name="Conditions & synthesis", auto_detected=True)
+        db.add_all([_fb_pro, _fb_con, _fb_nuance])
+        db.flush()
+        _type_map = {"assertion": _fb_pro, "concession": _fb_pro, "counter": _fb_con, "qualification": _fb_nuance, "exception": _fb_nuance, "synthesis": _fb_nuance, "reframe": _fb_nuance, "open_question": _fb_nuance}
+        for a in db.query(ArgumentNode).filter(ArgumentNode.topic_id == topic.id).all():
+            fb_track = _type_map.get(a.node_type.value, _fb_con)
+            a.track_id = fb_track.id
+
     db.commit()
 
     imported += 1
-    total_nodes = db.query(ArgumentNode).filter(ArgumentNode.topic_id == topic.id).count()
     print(f"   ✓ Imported: {total_nodes} argument nodes, {len(comments)} threads\n")
 
 print(f"\n{'='*60}")

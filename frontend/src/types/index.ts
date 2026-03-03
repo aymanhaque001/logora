@@ -71,6 +71,17 @@ export interface Topic {
   last_activity: string | null
 }
 
+export interface TrackChainNode {
+  id: string
+  content_snippet: string
+  ai_summary: string | null
+  node_type: NodeType
+  author_name: string
+  created_at: string
+  state: ArgumentState
+  edge_from_previous: EdgeRelationship | null
+}
+
 export interface DiscourseTrack {
   id: string
   topic_id: string
@@ -79,6 +90,8 @@ export interface DiscourseTrack {
   auto_detected: boolean
   created_at: string
   node_count: number
+  chain: TrackChainNode[]
+  evolution_summary: string | null
 }
 
 export interface SourceItem {
@@ -162,6 +175,34 @@ export interface MeshGraphData {
   nodes: GraphNode[]
   edges: MeshGraphEdge[]
   topic_labels: Record<string, string>
+}
+
+// ── Current-Flow Graph (flow-of-thought visualisation) ──────────────────────
+
+export interface CurrentFlowNode {
+  id: string
+  label: string
+  node_count: number
+  participant_count: number
+  dominant_types: NodeType[]
+  evolution_summary: string | null
+  activity_level: 'hot' | 'warm' | 'cool'
+  latest_activity: string | null
+  color_accent: string
+}
+
+export interface CurrentFlowEdge {
+  id: string
+  source: string
+  target: string
+  weight: number
+  relationship_types: string[]
+}
+
+export interface CurrentFlowData {
+  root: CurrentFlowNode
+  currents: CurrentFlowNode[]
+  edges: CurrentFlowEdge[]
 }
 
 export interface BriefingData {

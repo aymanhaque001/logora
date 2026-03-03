@@ -71,7 +71,7 @@ const LAYOUT_OPTIONS: {
   { value: 'hierarchy-tb', label: 'Top-Down', icon: TreePine },
   { value: 'hierarchy-lr', label: 'Left-Right', icon: Columns3 },
   { value: 'radial', label: 'Radial', icon: Radio },
-  { value: 'cluster-track', label: 'By Track', icon: Network },
+  { value: 'cluster-track', label: 'By Current', icon: Network },
   { value: 'rhizome', label: 'Rhizome', icon: Waves },
 ]
 
@@ -732,7 +732,7 @@ function NodeDetailPanel({
           </div>
           {node.track_name && (
             <div className='flex justify-between'>
-              <span className='text-text-tertiary'>Track</span>
+              <span className='text-text-tertiary'>Current</span>
               <span className='text-text-secondary'>{node.track_name}</span>
             </div>
           )}

@@ -107,7 +107,11 @@ const NODE_W = 240
 const NODE_H = 92
 const NODE_H_CONCEPT = 76
 
-function applyLRLayout(nodes: Node[], edges: Edge[]): Node[] {
+function applyLRLayout(
+  nodes: Node[],
+  edges: Edge[],
+  nodeHeight: number = NODE_H,
+): Node[] {
   if (nodes.length === 0) return nodes
   const g = new dagre.graphlib.Graph()
   g.setDefaultEdgeLabel(() => ({}))
@@ -118,12 +122,15 @@ function applyLRLayout(nodes: Node[], edges: Edge[]): Node[] {
     marginx: 40,
     marginy: 40,
   })
-  nodes.forEach((n) => g.setNode(n.id, { width: NODE_W, height: NODE_H }))
+  nodes.forEach((n) => g.setNode(n.id, { width: NODE_W, height: nodeHeight }))
   edges.forEach((e) => g.setEdge(e.target, e.source))
   dagre.layout(g)
   return nodes.map((n) => {
     const pos = g.node(n.id)
-    return { ...n, position: { x: pos.x - NODE_W / 2, y: pos.y - NODE_H / 2 } }
+    return {
+      ...n,
+      position: { x: pos.x - NODE_W / 2, y: pos.y - nodeHeight / 2 },
+    }
   })
 }
 
@@ -724,7 +731,7 @@ function GraphInner({
           onChange={(e) => setFilterTrack(e.target.value)}
           className='border border-border-subtle rounded-lg px-2 py-1 text-xs bg-surface-1 text-text-secondary focus:outline-none focus:border-accent/50'
         >
-          <option value='all'>all tracks</option>
+          <option value='all'>all currents</option>
           {tracks.map((t) => (
             <option key={t.id} value={t.id}>
               {t.name}

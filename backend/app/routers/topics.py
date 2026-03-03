@@ -5,9 +5,10 @@ import time
 from app.database import get_db
 from app.models import Topic, DiscourseTrack, ArgumentNode, ArgumentEdge, User, TopicConnection
 from app.schemas import (
-    TopicCreate, TopicUpdate, TopicOut, TrackCreate, TrackOut,
+    TopicCreate, TopicUpdate, TopicOut, TrackCreate, TrackOut, TrackChainNode,
     BriefingData, CatchUpData, ContributionOpportunity, ArgumentNodeOut,
     TopicConnectionCreate, TopicConnectionOut, MeshGraphData, GraphNode, MeshGraphEdge,
+    CurrentFlowData, CurrentFlowNode, CurrentFlowEdge,
 )
 from app.models import TopicStatus
 from app.auth import get_current_user, get_optional_user
@@ -239,13 +240,70 @@ def check_topic_lifecycle(db: Session = Depends(get_db)):
 
 # ── Discourse Tracks ──────────────────────────────────────────────────────────
 
+# ── Track evolution cache — keyed by track_id, value is (timestamp, evolution_summary)
+_TRACK_EVO_CACHE: dict = {}
+_TRACK_EVO_TTL = 600  # 10 minutes
+
+
 @router.get("/{topic_id}/tracks", response_model=List[TrackOut])
 def list_tracks(topic_id: str, db: Session = Depends(get_db)):
     tracks = db.query(DiscourseTrack).filter(DiscourseTrack.topic_id == topic_id).all()
     result = []
     for t in tracks:
+        # Fetch nodes belonging to this track, ordered chronologically
+        track_nodes = (
+            db.query(ArgumentNode)
+            .filter(ArgumentNode.track_id == t.id)
+            .order_by(ArgumentNode.created_at)
+            .all()
+        )
+
+        # Build edge lookup: target_id -> relationship_type (for chain annotations)
+        node_ids = [n.id for n in track_nodes]
+        edges = (
+            db.query(ArgumentEdge)
+            .filter(
+                ArgumentEdge.source_id.in_(node_ids),
+                ArgumentEdge.target_id.in_(node_ids),
+            )
+            .all()
+        ) if len(node_ids) > 1 else []
+        incoming_edge_map = {e.target_id: e.relationship_type.value for e in edges}
+
+        # Build chain nodes
+        chain = []
+        prev_id = None
+        for n in track_nodes:
+            chain.append(TrackChainNode(
+                id=n.id,
+                content_snippet=n.content[:120],
+                ai_summary=n.ai_summary,
+                node_type=n.node_type.value,
+                author_name=n.author.display_name if n.author else "unknown",
+                created_at=n.created_at,
+                state=n.state.value,
+                edge_from_previous=incoming_edge_map.get(n.id) if prev_id else None,
+            ))
+            prev_id = n.id
+
+        # Evolution summary (cached)
+        evolution_summary = None
+        if len(chain) >= 2:
+            cached = _TRACK_EVO_CACHE.get(t.id)
+            if cached and (time.time() - cached[0]) < _TRACK_EVO_TTL:
+                evolution_summary = cached[1]
+            else:
+                chain_data = [
+                    {"content": n.content[:200], "node_type": n.node_type.value}
+                    for n in track_nodes
+                ]
+                evolution_summary = ai_service.summarize_track_evolution(t.name, chain_data)
+                _TRACK_EVO_CACHE[t.id] = (time.time(), evolution_summary)
+
         out = TrackOut.model_validate(t)
-        out.node_count = db.query(ArgumentNode).filter(ArgumentNode.track_id == t.id).count()
+        out.node_count = len(track_nodes)
+        out.chain = chain
+        out.evolution_summary = evolution_summary
         result.append(out)
     return result
 
@@ -273,6 +331,226 @@ def create_track(
     out = TrackOut.model_validate(track)
     out.node_count = 0
     return out
+
+
+# ── Dynamic Current Re-Discovery ─────────────────────────────────────────────
+
+@router.post("/{topic_id}/recluster", status_code=200)
+def recluster_currents(topic_id: str, db: Session = Depends(get_db)):
+    """
+    Dynamically re-discover thematic currents by analyzing ALL arguments with AI.
+    Replaces existing auto-detected tracks with newly discovered ones.
+    Manually created tracks are preserved.
+    """
+    topic = db.query(Topic).filter(Topic.id == topic_id).first()
+    if not topic:
+        raise HTTPException(status_code=404, detail="Topic not found")
+
+    all_nodes = (
+        db.query(ArgumentNode)
+        .filter(ArgumentNode.topic_id == topic_id)
+        .order_by(ArgumentNode.created_at)
+        .all()
+    )
+    if len(all_nodes) < 3:
+        raise HTTPException(status_code=400, detail="Need at least 3 arguments to discover currents")
+
+    args_data = [
+        {"id": n.id, "content": n.content, "node_type": n.node_type.value, "parent_id": n.parent_id}
+        for n in all_nodes
+    ]
+
+    discovered = ai_service.discover_currents(topic.canonical_question, args_data)
+    if not discovered:
+        raise HTTPException(status_code=500, detail="AI could not discover currents")
+
+    # Remove old auto-detected tracks (preserve manually created ones)
+    old_auto_tracks = (
+        db.query(DiscourseTrack)
+        .filter(DiscourseTrack.topic_id == topic_id, DiscourseTrack.auto_detected == True)  # noqa: E712
+        .all()
+    )
+    old_track_ids = {t.id for t in old_auto_tracks}
+
+    # Unassign arguments from old auto-detected tracks
+    for n in all_nodes:
+        if n.track_id in old_track_ids:
+            n.track_id = None
+
+    for t in old_auto_tracks:
+        db.delete(t)
+    db.flush()
+
+    # Create new tracks and assign arguments
+    new_tracks = []
+    for c in discovered:
+        track = DiscourseTrack(
+            topic_id=topic_id,
+            name=c["name"],
+            description=c.get("description"),
+            auto_detected=True,
+        )
+        db.add(track)
+        db.flush()
+        new_tracks.append(track)
+
+        for arg_id in c["argument_ids"]:
+            node = db.query(ArgumentNode).filter(ArgumentNode.id == arg_id).first()
+            if node and node.track_id is None:  # don't override manual assignments
+                node.track_id = track.id
+
+    # Clear evolution caches for new tracks
+    for t in new_tracks:
+        _TRACK_EVO_CACHE.pop(t.id, None)
+    for t_id in old_track_ids:
+        _TRACK_EVO_CACHE.pop(t_id, None)
+
+    db.commit()
+
+    return {
+        "discovered": len(discovered),
+        "removed_old": len(old_auto_tracks),
+        "currents": [{"id": t.id, "name": t.name, "description": t.description} for t in new_tracks],
+    }
+
+
+# ── Current-Flow Graph ───────────────────────────────────────────────────────
+
+# Accent colours per dominant node type — matches frontend NODE_COLORS accents
+_CURRENT_ACCENT = {
+    "assertion": "#BF557B",
+    "counter": "#ef4444",
+    "qualification": "#f59e0b",
+    "exception": "#f97316",
+    "synthesis": "#22c55e",
+    "reframe": "#a855f7",
+    "open_question": "#6e5a7e",
+    "concession": "#14b8a6",
+}
+
+
+@router.get("/{topic_id}/current-flow", response_model=CurrentFlowData)
+def get_current_flow(topic_id: str, db: Session = Depends(get_db)):
+    """
+    Returns a flow-of-thought graph where each *current* (discourse track) is a
+    single node and edges represent cross-current argument connections.
+    """
+    from collections import Counter
+    from datetime import datetime as dt, timedelta, timezone
+
+    topic = db.query(Topic).filter(Topic.id == topic_id).first()
+    if not topic:
+        raise HTTPException(status_code=404, detail="Topic not found")
+
+    tracks = db.query(DiscourseTrack).filter(DiscourseTrack.topic_id == topic_id).all()
+    all_nodes = db.query(ArgumentNode).filter(ArgumentNode.topic_id == topic_id).all()
+
+    # Map from argument_id -> track_id  &  track_id -> list[ArgumentNode]
+    arg_track: dict[str, str | None] = {}
+    track_args: dict[str, list] = {t.id: [] for t in tracks}
+    untracked: list = []
+    for n in all_nodes:
+        arg_track[n.id] = n.track_id
+        if n.track_id and n.track_id in track_args:
+            track_args[n.track_id].append(n)
+        else:
+            untracked.append(n)
+
+    # Build current flow nodes
+    now = dt.now(timezone.utc)
+    current_nodes: list[CurrentFlowNode] = []
+    for t in tracks:
+        nodes_in = track_args[t.id]
+        if not nodes_in:
+            continue
+
+        # Dominant node types (top 2)
+        type_counts = Counter(n.node_type.value for n in nodes_in)
+        dominant = [pair[0] for pair in type_counts.most_common(2)]
+
+        # Unique authors
+        authors = {n.author_id for n in nodes_in}
+
+        # Latest activity
+        latest = max(n.created_at for n in nodes_in)
+        # Make latest timezone-aware if needed for comparison
+        latest_aware = latest if latest.tzinfo else latest.replace(tzinfo=timezone.utc)
+
+        # Activity level
+        age = now - latest_aware
+        if age < timedelta(hours=24):
+            activity = "hot"
+        elif age < timedelta(days=3):
+            activity = "warm"
+        else:
+            activity = "cool"
+
+        # Evolution summary (use cached if available)
+        evolution_summary = None
+        cached = _TRACK_EVO_CACHE.get(t.id)
+        if cached and (time.time() - cached[0]) < _TRACK_EVO_TTL:
+            evolution_summary = cached[1]
+
+        accent = _CURRENT_ACCENT.get(dominant[0], "#6e5a7e") if dominant else "#6e5a7e"
+
+        current_nodes.append(CurrentFlowNode(
+            id=t.id,
+            label=t.name,
+            node_count=len(nodes_in),
+            participant_count=len(authors),
+            dominant_types=dominant,
+            evolution_summary=evolution_summary,
+            activity_level=activity,
+            latest_activity=latest,
+            color_accent=accent,
+        ))
+
+    # Root node — the debate question
+    root = CurrentFlowNode(
+        id="root",
+        label=topic.canonical_question,
+        node_count=len(all_nodes),
+        participant_count=len({n.author_id for n in all_nodes}),
+        dominant_types=[],
+        evolution_summary=None,
+        activity_level="hot" if all_nodes else "cool",
+        latest_activity=max((n.created_at for n in all_nodes), default=None),
+        color_accent="#BF557B",
+    )
+
+    # Cross-current edges: find ArgumentEdges where source.track != target.track
+    all_edges = (
+        db.query(ArgumentEdge)
+        .join(ArgumentNode, ArgumentEdge.source_id == ArgumentNode.id)
+        .filter(ArgumentNode.topic_id == topic_id)
+        .all()
+    )
+
+    pair_counter: dict[tuple[str, str], Counter] = {}  # (track_a, track_b) -> Counter of rel types
+    for e in all_edges:
+        src_track = arg_track.get(e.source_id)
+        tgt_track = arg_track.get(e.target_id)
+        if not src_track or not tgt_track:
+            continue
+        if src_track == tgt_track:
+            continue
+        # Normalise pair order so A-B and B-A collapse
+        pair = tuple(sorted([src_track, tgt_track]))
+        if pair not in pair_counter:
+            pair_counter[pair] = Counter()
+        pair_counter[pair][e.relationship_type.value] += 1
+
+    flow_edges: list[CurrentFlowEdge] = []
+    for (a, b), rels in pair_counter.items():
+        flow_edges.append(CurrentFlowEdge(
+            id=f"flow_{a}_{b}",
+            source=a,
+            target=b,
+            weight=sum(rels.values()),
+            relationship_types=[r for r, _ in rels.most_common(3)],
+        ))
+
+    return CurrentFlowData(root=root, currents=current_nodes, edges=flow_edges)
 
 
 # ── Briefing Room ─────────────────────────────────────────────────────────────

@@ -94,18 +94,26 @@ def submit_argument(
         if not payload.edge_relationship:
             raise HTTPException(status_code=400, detail="edge_relationship is required when responding to an argument")
 
-    # AI classification
+    # AI classification — give Claude full topic context for better track theme suggestions
     parent_content = parent.content if parent else None
-    ai_result = ai_service.classify_node(payload.content, parent_content, payload.node_type.value)
+    existing_tracks = db.query(DiscourseTrack).filter(
+        DiscourseTrack.topic_id == topic_id
+    ).all()
+    existing_track_names = [t.name for t in existing_tracks]
+
+    ai_result = ai_service.classify_node(
+        payload.content,
+        parent_content,
+        payload.node_type.value,
+        topic_question=topic.canonical_question,
+        existing_track_names=existing_track_names,
+    )
 
     # Resolve discourse track
     track_id = payload.track_id
 
     if not track_id:
         # Try AI track detection
-        existing_tracks = db.query(DiscourseTrack).filter(
-            DiscourseTrack.topic_id == topic_id
-        ).all()
         tracks_data = [{"id": t.id, "name": t.name, "description": t.description} for t in existing_tracks]
 
         detected_track_id = ai_service.detect_track_for_node(payload.content, tracks_data)

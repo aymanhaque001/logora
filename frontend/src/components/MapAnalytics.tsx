@@ -100,7 +100,7 @@ export function MapAnalytics({ nodes, edges, onHighlightNode }: Props) {
     for (const n of nodes) {
       const tid = n.track_id ?? '__none__'
       if (!byTrack[tid])
-        byTrack[tid] = { name: n.track_name ?? 'Untracked', count: 0 }
+        byTrack[tid] = { name: n.track_name ?? 'No current', count: 0 }
       byTrack[tid].count++
     }
 
@@ -316,7 +316,7 @@ export function MapAnalytics({ nodes, edges, onHighlightNode }: Props) {
       {Object.keys(stats.byTrack).length > 0 && (
         <div>
           <h4 className='text-[10px] font-semibold text-text-tertiary uppercase tracking-wider mb-2'>
-            By Track
+            By Current
           </h4>
           <div className='space-y-1.5'>
             {Object.entries(stats.byTrack)
