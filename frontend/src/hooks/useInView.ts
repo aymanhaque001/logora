@@ -4,7 +4,9 @@ import { useState, useEffect, useRef } from 'react'
  * Returns [ref, isInView] — isInView becomes true once the element
  * has entered the viewport (and stays true). Useful for lazy-loading.
  */
-export function useInView(options?: IntersectionObserverInit): [React.RefObject<HTMLAnchorElement>, boolean] {
+export function useInView(
+  options?: IntersectionObserverInit,
+): [React.RefObject<HTMLAnchorElement>, boolean] {
   const ref = useRef<HTMLAnchorElement>(null)
   const [inView, setInView] = useState(false)
 

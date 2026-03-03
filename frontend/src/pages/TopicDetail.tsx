@@ -24,7 +24,6 @@ import {
   CatchUpData,
   MeshGraphData,
 } from '../types'
-import { BriefingRoom } from '../components/BriefingRoom'
 import { CatchUpModal } from '../components/CatchUpModal'
 import { ArgumentCard } from '../components/ArgumentCard'
 import { SubmitArgumentForm } from '../components/SubmitArgumentForm'
@@ -42,9 +41,6 @@ import {
   Trash2,
   ArrowLeft,
   CheckCircle2,
-  ChevronDown,
-  ChevronRight,
-  BookOpen,
   PanelLeftClose,
   PanelLeft,
   Sparkles,
@@ -181,8 +177,7 @@ export function TopicDetail() {
   const [showForm, setShowForm] = useState(false)
   const [highlightedId, setHighlightedId] = useState<string | null>(null)
   const [toast, setToast] = useState<string | null>(null)
-  const [explorerOpen, setExplorerOpen] = useState(true)
-  const [briefingOpen, setBriefingOpen] = useState(true)
+  const [explorerOpen, setExplorerOpen] = useState(false)
   const [catchUpDismissed, setCatchUpDismissed] = useState(false)
   const [showCatchUp, setShowCatchUp] = useState(false)
   const [centerTab, setCenterTab] = useState<'comments' | 'graph'>('comments')
@@ -634,65 +629,32 @@ export function TopicDetail() {
           )}
         </main>
 
-        {/* RIGHT: Briefing panel */}
-        <aside className='w-80 border-l border-border bg-surface-1 shrink-0 overflow-y-auto hidden xl:block'>
-          <div className='p-4'>
-            <button
-              onClick={() => setBriefingOpen(!briefingOpen)}
-              className='w-full flex items-center justify-between text-xs font-semibold text-text-secondary uppercase tracking-wider mb-3'
-            >
-              <span className='flex items-center gap-1.5'>
-                <BookOpen size={13} className='text-text-tertiary' /> Briefing
-              </span>
-              {briefingOpen ? (
-                <ChevronDown size={13} className='text-text-tertiary' />
-              ) : (
-                <ChevronRight size={13} className='text-text-tertiary' />
-              )}
-            </button>
-            {briefingOpen && (
-              <div className='animate-slide-down'>
-                {briefing ? (
-                  <BriefingRoom briefing={briefing} />
-                ) : (
-                  <div className='space-y-2'>
-                    {[1, 2].map((i) => (
-                      <div
-                        key={i}
-                        className='h-16 bg-surface-2 rounded animate-pulse'
-                      />
-                    ))}
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-
+        {/* RIGHT: Tracks + RAG panel */}
+        <aside className='w-60 border-l border-border bg-surface-1 shrink-0 overflow-y-auto hidden xl:flex xl:flex-col'>
           {/* Tracks */}
-          <div className='px-4 pb-4'>
-            <h3 className='text-xs font-semibold text-text-secondary uppercase tracking-wider mb-2'>
-              Tracks ({tracks.length})
-            </h3>
-            <div className='space-y-1'>
-              {tracks.map((t) => (
-                <div
-                  key={t.id}
-                  className='flex items-center justify-between text-xs text-text-secondary bg-surface-2 rounded-lg px-3 py-2'
-                >
-                  <span className='font-medium'>{t.name}</span>
-                  <span className='text-text-tertiary'>{t.node_count}</span>
-                </div>
-              ))}
-              {tracks.length === 0 && (
-                <p className='text-xs text-text-tertiary'>
-                  Tracks appear as arguments are submitted.
-                </p>
-              )}
+          {tracks.length > 0 && (
+            <div className='px-3 pt-3 pb-2'>
+              <h3 className='text-[10px] font-semibold text-text-tertiary uppercase tracking-wider mb-1.5'>
+                Tracks ({tracks.length})
+              </h3>
+              <div className='space-y-1'>
+                {tracks.map((t) => (
+                  <div
+                    key={t.id}
+                    className='flex items-center justify-between text-[11px] text-text-secondary bg-surface-2 rounded px-2 py-1.5'
+                  >
+                    <span className='font-medium truncate mr-2'>{t.name}</span>
+                    <span className='text-text-tertiary shrink-0'>{t.node_count}</span>
+                  </div>
+                ))}
+              </div>
             </div>
-          </div>
+          )}
 
           {/* RAG Query */}
-          <RAGQueryPanel topicId={topicId} />
+          <div className='flex-1'>
+            <RAGQueryPanel topicId={topicId} />
+          </div>
         </aside>
       </div>
 

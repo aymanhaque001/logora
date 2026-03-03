@@ -40,7 +40,11 @@ function TopicCard({ topic }: { topic: Topic }) {
   const activityTime = topic.last_activity ?? topic.created_at
 
   return (
-    <Link ref={cardRef} to={`/topics/${topic.id}`} className='group block card-hover p-3'>
+    <Link
+      ref={cardRef}
+      to={`/topics/${topic.id}`}
+      className='group block card-hover p-3'
+    >
       <div className='flex items-start justify-between gap-2 mb-1.5'>
         <h2 className='text-xs font-medium text-text-primary leading-snug group-hover:text-accent-hover transition-colors'>
           {topic.canonical_question}
