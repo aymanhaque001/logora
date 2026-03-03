@@ -137,6 +137,19 @@ export const getDebateSuggestions = (params?: {
 export const getNewsFeed = (params?: { category?: string; limit?: number }) =>
   api.get('/news', { params: params ?? {} }).then((r) => r.data)
 
+// ── Pre-Classification ──────────────────────────────────────────────────────
+export const preClassify = (
+  topicId: string,
+  content: string,
+  parentContent?: string,
+) =>
+  api
+    .post(`/topics/${topicId}/arguments/pre-classify`, {
+      content,
+      parent_content: parentContent ?? null,
+    })
+    .then((r) => r.data as { suggested_type: string; confidence: number; reasoning: string })
+
 // ── Duplicate Detection (Graph RAG) ─────────────────────────────────────────
 export const checkDuplicate = (topicId: string, content: string) =>
   api

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import {
   ArgumentNode,
   EdgeRelationship,
@@ -8,7 +8,7 @@ import {
   DuplicateCheckResult,
 } from '../types'
 import { NODE_TYPES, NODE_TYPE_DESCRIPTIONS } from './NodeTypeBadge'
-import { submitArgument, checkDuplicate } from '../api/client'
+import { submitArgument, checkDuplicate, preClassify } from '../api/client'
 import {
   Plus,
   Minus,
@@ -16,6 +16,7 @@ import {
   AlertCircle,
   Send,
   CornerDownRight,
+  Sparkles,
 } from 'lucide-react'
 import { DuplicateCheckModal } from './DuplicateCheckModal'
 
@@ -37,6 +38,18 @@ const EDGE_RELATIONSHIPS: { value: EdgeRelationship; label: string }[] = [
   { value: 'synthesizes', label: 'Synthesizes' },
   { value: 'questions', label: 'Questions' },
 ]
+
+// Plain-English labels for each node type (issue #29)
+const NODE_TYPE_LABELS: Record<NodeType, { primary: string; subtitle: string }> = {
+  assertion:     { primary: "I’m claiming…",           subtitle: 'assertion' },
+  counter:       { primary: 'I disagree…',             subtitle: 'counter' },
+  qualification: { primary: 'Yes, but…',               subtitle: 'qualification' },
+  exception:     { primary: 'This breaks down when…',  subtitle: 'exception' },
+  synthesis:     { primary: 'We both agree that…',     subtitle: 'synthesis' },
+  reframe:       { primary: 'The real question is…',   subtitle: 'reframe' },
+  open_question: { primary: 'Nobody has addressed…',  subtitle: 'open question' },
+  concession:    { primary: 'Fair point, I’ll grant…', subtitle: 'concession' },
+}
 
 interface Props {
   topicId: string
@@ -64,6 +77,35 @@ export function SubmitArgumentForm({
   const [showAdvanced, setShowAdvanced] = useState(false)
   const [dupResult, setDupResult] = useState<DuplicateCheckResult | null>(null)
   const [checking, setChecking] = useState(false)
+  const [aiSuggestion, setAiSuggestion] = useState<{ type: NodeType; confidence: number } | null>(null)
+  const [aiLoading, setAiLoading] = useState(false)
+  const [userOverrode, setUserOverrode] = useState(false)
+  const classifyTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  // AI pre-classification: debounce 900 ms after user stops typing
+  useEffect(() => {
+    if (content.trim().length < 35) {
+      setAiSuggestion(null)
+      setUserOverrode(false)
+      return
+    }
+    if (classifyTimer.current) clearTimeout(classifyTimer.current)
+    classifyTimer.current = setTimeout(async () => {
+      setAiLoading(true)
+      try {
+        const result = await preClassify(topicId, content.trim(), replyTo?.content)
+        const suggestedType = result.suggested_type as NodeType
+        setAiSuggestion({ type: suggestedType, confidence: result.confidence })
+        if (!userOverrode) setNodeType(suggestedType)
+      } catch {
+        // silently ignore — classification errors don’t block submission
+      } finally {
+        setAiLoading(false)
+      }
+    }, 900)
+    return () => { if (classifyTimer.current) clearTimeout(classifyTimer.current) }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [content, topicId])
 
   const toggleNuance = (tag: NuanceTag) => {
     setNuanceTags((prev) =>
@@ -178,18 +220,29 @@ export function SubmitArgumentForm({
             />
 
             <div className='flex items-center gap-2 mt-2'>
-              {/* Compact type selector */}
-              <select
-                value={nodeType}
-                onChange={(e) => setNodeType(e.target.value as NodeType)}
-                className='bg-surface-1 border border-border-subtle rounded px-2 py-1 text-xs text-text-secondary focus:outline-none focus:border-accent/50'
-              >
-                {NODE_TYPES.map((t) => (
-                  <option key={t} value={t}>
-                    {t.replace('_', ' ')}
-                  </option>
-                ))}
-              </select>
+              {/* Compact type selector with AI indicator */}
+              <div className='flex items-center gap-1'>
+                {aiLoading && (
+                  <span className='w-2.5 h-2.5 border border-accent/40 border-t-accent rounded-full animate-spin flex-shrink-0' />
+                )}
+                {aiSuggestion && !aiLoading && (
+                  <Sparkles size={9} className='text-accent flex-shrink-0' />
+                )}
+                <select
+                  value={nodeType}
+                  onChange={(e) => {
+                    setNodeType(e.target.value as NodeType)
+                    setUserOverrode(true)
+                  }}
+                  className='bg-surface-1 border border-border-subtle rounded px-2 py-1 text-xs text-text-secondary focus:outline-none focus:border-accent/50'
+                >
+                  {NODE_TYPES.map((t) => (
+                    <option key={t} value={t}>
+                      {NODE_TYPE_LABELS[t].primary}
+                    </option>
+                  ))}
+                </select>
+              </div>
 
               {replyTo && (
                 <select
@@ -368,33 +421,21 @@ export function SubmitArgumentForm({
           </div>
         )}
 
+        {/* Textarea first — AI classifies as you type */}
         <div>
-          <label className='block text-sm font-medium text-text-secondary mb-2'>
-            Argument type
+          <label className='block text-sm font-medium text-text-secondary mb-1.5'>
+            Your argument
           </label>
-          <div className='grid grid-cols-2 sm:grid-cols-4 gap-1.5'>
-            {NODE_TYPES.map((t) => (
-              <label
-                key={t}
-                className={`cursor-pointer border rounded-md p-2 text-xs text-center transition-all ${
-                  nodeType === t
-                    ? 'border-accent bg-accent-muted text-accent font-medium'
-                    : 'border-border hover:border-border-hover text-text-tertiary hover:text-text-secondary'
-                }`}
-              >
-                <input
-                  type='radio'
-                  className='sr-only'
-                  checked={nodeType === t}
-                  onChange={() => setNodeType(t)}
-                />
-                <span className='capitalize'>{t.replace('_', ' ')}</span>
-              </label>
-            ))}
-          </div>
-          <p className='mt-1.5 text-xs text-text-tertiary'>
-            {NODE_TYPE_DESCRIPTIONS[nodeType]}
-          </p>
+          <textarea
+            rows={4}
+            value={content}
+            onChange={(e) => setContent(e.target.value)}
+            placeholder='State your argument clearly…'
+            className='input-field resize-none'
+            required
+            minLength={20}
+            autoFocus
+          />
         </div>
 
         {replyTo && (
@@ -418,19 +459,61 @@ export function SubmitArgumentForm({
           </div>
         )}
 
+        {/* Type picker — AI pre-selects, user can override */}
         <div>
-          <label className='block text-sm font-medium text-text-secondary mb-1.5'>
-            Your argument
-          </label>
-          <textarea
-            rows={4}
-            value={content}
-            onChange={(e) => setContent(e.target.value)}
-            placeholder='State your argument clearly...'
-            className='input-field resize-none'
-            required
-            minLength={20}
-          />
+          <div className='flex items-center justify-between mb-2'>
+            <label className='text-sm font-medium text-text-secondary'>Type</label>
+            <span className='text-[11px] flex items-center gap-1 h-4'>
+              {aiLoading && (
+                <span className='w-2.5 h-2.5 border border-accent/40 border-t-accent rounded-full animate-spin' />
+              )}
+              {aiSuggestion && !aiLoading && (
+                <span className='flex items-center gap-1 text-accent'>
+                  <Sparkles size={9} />
+                  AI suggests <em>{NODE_TYPE_LABELS[aiSuggestion.type].subtitle}</em>
+                  {userOverrode && (
+                    <span className='text-text-tertiary not-italic'> · overridden</span>
+                  )}
+                </span>
+              )}
+              {!aiSuggestion && !aiLoading && (
+                <span className='text-text-tertiary'>{NODE_TYPE_DESCRIPTIONS[nodeType]}</span>
+              )}
+            </span>
+          </div>
+          <div className='grid grid-cols-2 sm:grid-cols-4 gap-1.5'>
+            {NODE_TYPES.map((t) => {
+              const isAiSuggested = aiSuggestion?.type === t
+              const lbl = NODE_TYPE_LABELS[t]
+              return (
+                <label
+                  key={t}
+                  className={`cursor-pointer border rounded-md px-2 py-2.5 text-xs text-center transition-all relative ${
+                    nodeType === t
+                      ? 'border-accent bg-accent-muted text-accent font-medium'
+                      : 'border-border hover:border-border-hover text-text-tertiary hover:text-text-secondary'
+                  }`}
+                >
+                  <input
+                    type='radio'
+                    className='sr-only'
+                    checked={nodeType === t}
+                    onChange={() => {
+                      setNodeType(t)
+                      setUserOverrode(aiSuggestion?.type !== t)
+                    }}
+                  />
+                  {isAiSuggested && (
+                    <span className='absolute top-1 right-1'>
+                      <Sparkles size={8} className='text-accent opacity-70' />
+                    </span>
+                  )}
+                  <span className='block font-medium text-[11px] leading-snug'>{lbl.primary}</span>
+                  <span className='block text-[9px] text-text-tertiary mt-0.5 opacity-70'>{lbl.subtitle}</span>
+                </label>
+              )
+            })}
+          </div>
         </div>
 
         <div>

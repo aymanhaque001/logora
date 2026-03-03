@@ -432,6 +432,32 @@ def check_dormant_arguments(topic_id: str, db: Session = Depends(get_db)):
     return {"checked": len(nodes), "transitioned_to_dormant": transitioned_ids}
 
 
+# ── Pre-Classification ───────────────────────────────────────────────────────
+
+@router.post("/pre-classify")
+def pre_classify_node(
+    topic_id: str,
+    payload: dict,
+):
+    """
+    Lightweight AI pre-classification: given draft content return the most
+    likely node type. No DB writes. No auth required.
+    Body: { "content": "...", "parent_content": "..." (optional) }
+    Returns: { "suggested_type": NodeType, "confidence": float, "reasoning": str }
+    """
+    content = payload.get("content", "").strip()
+    parent_content = payload.get("parent_content", "").strip() or None
+    if not content:
+        raise HTTPException(status_code=400, detail="content is required")
+
+    result = ai_service.classify_node(content, parent_content, "assertion")
+    return {
+        "suggested_type": result.get("confirmed_type", "assertion"),
+        "confidence": result.get("confidence", 0.75),
+        "reasoning": result.get("reasoning", ""),
+    }
+
+
 # ── Duplicate Detection (Graph RAG) ──────────────────────────────────────────
 
 @router.post("/check-duplicate")
