@@ -220,7 +220,8 @@ function ArgumentNodeCard({ data }: NodeProps<NodeData>) {
   const c = NODE_COLORS[n.node_type] ?? NODE_COLORS.assertion
   const hasChildren = childCount > 0
   const concept = n.ai_summary ?? null
-  const fallback = n.content.length > 88 ? n.content.slice(0, 86) + '\u2026' : n.content
+  const fallback =
+    n.content.length > 88 ? n.content.slice(0, 86) + '\u2026' : n.content
 
   if (knowledgeMode) {
     return (
@@ -238,31 +239,74 @@ function ArgumentNodeCard({ data }: NodeProps<NodeData>) {
           boxShadow: `0 1px 8px rgba(0,0,0,0.4)`,
         }}
       >
-        <Handle type='target' position={Position.Left}
-          style={{ background: c.border, width: 7, height: 7, border: '2px solid #0e0812', left: -6 }} />
+        <Handle
+          type='target'
+          position={Position.Left}
+          style={{
+            background: c.border,
+            width: 7,
+            height: 7,
+            border: '2px solid #0e0812',
+            left: -6,
+          }}
+        />
 
         {isMesh && (
-          <div style={{
-            padding: '2px 9px', borderBottom: `1px solid ${c.border}20`,
-            fontSize: 9, color: c.accent, opacity: 0.7, overflow: 'hidden',
-            textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-          }}>↗ {meshTopicLabel}</div>
+          <div
+            style={{
+              padding: '2px 9px',
+              borderBottom: `1px solid ${c.border}20`,
+              fontSize: 9,
+              color: c.accent,
+              opacity: 0.7,
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap',
+            }}
+          >
+            ↗ {meshTopicLabel}
+          </div>
         )}
 
         {/* Type row */}
-        <div style={{ padding: '5px 9px 2px', display: 'flex', alignItems: 'center', gap: 5 }}>
-          <span style={{ color: c.accent, fontSize: 9, fontWeight: 700, letterSpacing: '0.07em', textTransform: 'uppercase' }}>
+        <div
+          style={{
+            padding: '5px 9px 2px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 5,
+          }}
+        >
+          <span
+            style={{
+              color: c.accent,
+              fontSize: 9,
+              fontWeight: 700,
+              letterSpacing: '0.07em',
+              textTransform: 'uppercase',
+            }}
+          >
             {n.node_type.replace('_', ' ')}
           </span>
           {hasChildren && (
             <button
-              onClick={(e) => { e.stopPropagation(); onToggle(n.id) }}
+              onClick={(e) => {
+                e.stopPropagation()
+                onToggle(n.id)
+              }}
               style={{
-                marginLeft: 'auto', background: collapsed ? c.accent : 'transparent',
+                marginLeft: 'auto',
+                background: collapsed ? c.accent : 'transparent',
                 color: collapsed ? '#0e0812' : '#6e5a7e',
                 border: `1px solid ${collapsed ? c.accent : '#3a2848'}`,
-                borderRadius: 3, padding: '1px 5px', fontSize: 9, cursor: 'pointer',
-                display: 'flex', alignItems: 'center', gap: 1, fontWeight: 600,
+                borderRadius: 3,
+                padding: '1px 5px',
+                fontSize: 9,
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 1,
+                fontWeight: 600,
               }}
             >
               {collapsed ? <ChevronRight size={8} /> : <ChevronDown size={8} />}
@@ -270,7 +314,17 @@ function ArgumentNodeCard({ data }: NodeProps<NodeData>) {
             </button>
           )}
           {!hasChildren && n.sources_count > 0 && (
-            <span style={{ marginLeft: 'auto', background: c.accent + '20', color: c.accent, fontSize: 8, padding: '1px 4px', borderRadius: 3, fontWeight: 600 }}>
+            <span
+              style={{
+                marginLeft: 'auto',
+                background: c.accent + '20',
+                color: c.accent,
+                fontSize: 8,
+                padding: '1px 4px',
+                borderRadius: 3,
+                fontWeight: 600,
+              }}
+            >
               {n.sources_count}src
             </span>
           )}
@@ -278,24 +332,35 @@ function ArgumentNodeCard({ data }: NodeProps<NodeData>) {
 
         {/* Concept text — THE primary display */}
         <div style={{ padding: '3px 10px 8px' }}>
-          <p style={{
-            margin: 0,
-            fontSize: 12.5,
-            lineHeight: 1.45,
-            color: concept ? '#f0eaf4' : '#7a6888',
-            fontWeight: concept ? 400 : 300,
-            fontStyle: concept ? 'normal' : 'italic',
-            overflow: 'hidden',
-            display: '-webkit-box',
-            WebkitLineClamp: 3,
-            WebkitBoxOrient: 'vertical',
-          }}>
+          <p
+            style={{
+              margin: 0,
+              fontSize: 12.5,
+              lineHeight: 1.45,
+              color: concept ? '#f0eaf4' : '#7a6888',
+              fontWeight: concept ? 400 : 300,
+              fontStyle: concept ? 'normal' : 'italic',
+              overflow: 'hidden',
+              display: '-webkit-box',
+              WebkitLineClamp: 3,
+              WebkitBoxOrient: 'vertical',
+            }}
+          >
             {concept ?? fallback}
           </p>
         </div>
 
-        <Handle type='source' position={Position.Right}
-          style={{ background: c.border, width: 7, height: 7, border: '2px solid #0e0812', right: -6 }} />
+        <Handle
+          type='source'
+          position={Position.Right}
+          style={{
+            background: c.border,
+            width: 7,
+            height: 7,
+            border: '2px solid #0e0812',
+            right: -6,
+          }}
+        />
       </div>
     )
   }
@@ -316,61 +381,150 @@ function ArgumentNodeCard({ data }: NodeProps<NodeData>) {
         boxShadow: `0 2px 12px rgba(0,0,0,${isMesh ? '0.2' : '0.35'})`,
       }}
     >
-      <Handle type='target' position={Position.Left}
-        style={{ background: c.border, width: 7, height: 7, border: '2px solid #0e0812', left: -6 }} />
+      <Handle
+        type='target'
+        position={Position.Left}
+        style={{
+          background: c.border,
+          width: 7,
+          height: 7,
+          border: '2px solid #0e0812',
+          left: -6,
+        }}
+      />
 
       {isMesh && (
-        <div style={{
-          padding: '3px 10px', borderBottom: `1px solid ${c.border}20`,
-          fontSize: 9, color: c.accent, fontWeight: 500, letterSpacing: '0.03em',
-          overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', opacity: 0.75,
-        }}>↗ {meshTopicLabel}</div>
+        <div
+          style={{
+            padding: '3px 10px',
+            borderBottom: `1px solid ${c.border}20`,
+            fontSize: 9,
+            color: c.accent,
+            fontWeight: 500,
+            letterSpacing: '0.03em',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap',
+            opacity: 0.75,
+          }}
+        >
+          ↗ {meshTopicLabel}
+        </div>
       )}
 
-      <div style={{ padding: '5px 10px 4px', display: 'flex', alignItems: 'center', gap: 4 }}>
-        <span style={{ color: c.accent, fontSize: 9, fontWeight: 700, letterSpacing: '0.07em', textTransform: 'uppercase', flexShrink: 0 }}>
+      <div
+        style={{
+          padding: '5px 10px 4px',
+          display: 'flex',
+          alignItems: 'center',
+          gap: 4,
+        }}
+      >
+        <span
+          style={{
+            color: c.accent,
+            fontSize: 9,
+            fontWeight: 700,
+            letterSpacing: '0.07em',
+            textTransform: 'uppercase',
+            flexShrink: 0,
+          }}
+        >
           {n.node_type.replace('_', ' ')}
         </span>
         <span style={{ flex: 1 }} />
         {n.sources_count > 0 && (
-          <span style={{ background: c.accent + '22', color: c.accent, fontSize: 9, padding: '1px 5px', borderRadius: 3, fontWeight: 600 }}>
+          <span
+            style={{
+              background: c.accent + '22',
+              color: c.accent,
+              fontSize: 9,
+              padding: '1px 5px',
+              borderRadius: 3,
+              fontWeight: 600,
+            }}
+          >
             {n.sources_count}src
           </span>
         )}
         {n.nuance_tags[0] && (
-          <span style={{ background: '#281d34', color: '#6e5a7e', fontSize: 9, padding: '1px 4px', borderRadius: 3 }}>
+          <span
+            style={{
+              background: '#281d34',
+              color: '#6e5a7e',
+              fontSize: 9,
+              padding: '1px 4px',
+              borderRadius: 3,
+            }}
+          >
             {n.nuance_tags[0].replace(/_/g, ' ')}
           </span>
         )}
       </div>
 
       <div style={{ padding: '0 10px 5px' }}>
-        <p style={{
-          margin: 0, fontSize: 11.5, lineHeight: 1.4,
-          color: concept ? '#f0eaf4' : '#c4adc9',
-          fontWeight: concept ? 400 : 300,
-          overflow: 'hidden', display: '-webkit-box',
-          WebkitLineClamp: 2, WebkitBoxOrient: 'vertical',
-        }}>
+        <p
+          style={{
+            margin: 0,
+            fontSize: 11.5,
+            lineHeight: 1.4,
+            color: concept ? '#f0eaf4' : '#c4adc9',
+            fontWeight: concept ? 400 : 300,
+            overflow: 'hidden',
+            display: '-webkit-box',
+            WebkitLineClamp: 2,
+            WebkitBoxOrient: 'vertical',
+          }}
+        >
           {concept ?? fallback}
         </p>
       </div>
 
-      <div style={{ padding: '4px 8px 5px', borderTop: '1px solid #281d34', display: 'flex', alignItems: 'center', gap: 4 }}>
-        <span style={{ fontSize: 9.5, color: '#6e5a7e', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }}>
+      <div
+        style={{
+          padding: '4px 8px 5px',
+          borderTop: '1px solid #281d34',
+          display: 'flex',
+          alignItems: 'center',
+          gap: 4,
+        }}
+      >
+        <span
+          style={{
+            fontSize: 9.5,
+            color: '#6e5a7e',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap',
+            flex: 1,
+          }}
+        >
           {n.author_display_name}
-          {n.track_name && <span style={{ color: c.accent + '80', marginLeft: 4 }}>· {n.track_name}</span>}
+          {n.track_name && (
+            <span style={{ color: c.accent + '80', marginLeft: 4 }}>
+              · {n.track_name}
+            </span>
+          )}
         </span>
         {hasChildren && (
           <button
-            onClick={(e) => { e.stopPropagation(); onToggle(n.id) }}
+            onClick={(e) => {
+              e.stopPropagation()
+              onToggle(n.id)
+            }}
             style={{
               background: collapsed ? c.accent : '#281d34',
               color: collapsed ? '#0e0812' : '#a893b8',
-              border: 'none', borderRadius: 4, padding: '2px 7px',
-              fontSize: 9.5, cursor: 'pointer',
-              display: 'flex', alignItems: 'center', gap: 2,
-              fontWeight: 600, flexShrink: 0,
+              border: 'none',
+              borderRadius: 4,
+              padding: '2px 7px',
+              fontSize: 9.5,
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 2,
+              fontWeight: 600,
+              flexShrink: 0,
             }}
           >
             {collapsed ? <ChevronRight size={9} /> : <ChevronDown size={9} />}
@@ -379,8 +533,17 @@ function ArgumentNodeCard({ data }: NodeProps<NodeData>) {
         )}
       </div>
 
-      <Handle type='source' position={Position.Right}
-        style={{ background: c.border, width: 7, height: 7, border: '2px solid #0e0812', right: -6 }} />
+      <Handle
+        type='source'
+        position={Position.Right}
+        style={{
+          background: c.border,
+          width: 7,
+          height: 7,
+          border: '2px solid #0e0812',
+          right: -6,
+        }}
+      />
     </div>
   )
 }
