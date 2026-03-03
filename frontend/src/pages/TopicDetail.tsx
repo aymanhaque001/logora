@@ -25,6 +25,7 @@ import {
   MeshGraphData,
 } from '../types'
 import { CatchUpModal } from '../components/CatchUpModal'
+import { BriefingRoom } from '../components/BriefingRoom'
 import { ArgumentCard } from '../components/ArgumentCard'
 import { SubmitArgumentForm } from '../components/SubmitArgumentForm'
 import { ExplorerSidebar } from '../components/ExplorerSidebar'
@@ -49,6 +50,12 @@ import {
   Network,
   Waves,
   Brain,
+  ChevronDown,
+  ChevronUp,
+  GitMerge,
+  Bot,
+  X,
+  BookOpen,
 } from 'lucide-react'
 
 function buildChildMap(
@@ -183,6 +190,23 @@ export function TopicDetail() {
   const [centerTab, setCenterTab] = useState<'comments' | 'graph'>('comments')
   const [showExpandedMap, setShowExpandedMap] = useState(false)
   const [meshMode, setMeshMode] = useState(false)
+  // Briefing strip collapsed state — persisted
+  const [briefingCollapsed, setBriefingCollapsed] = useState(
+    () => localStorage.getItem('briefing-collapsed') === 'true'
+  )
+  // Right drawer: null = closed, 'tracks' | 'rag' | 'briefing' = open panel
+  const [rightDrawer, setRightDrawer] = useState<null | 'tracks' | 'rag' | 'briefing'>(null)
+
+  const toggleBriefing = useCallback(() => {
+    setBriefingCollapsed((v) => {
+      localStorage.setItem('briefing-collapsed', String(!v))
+      return !v
+    })
+  }, [])
+
+  const toggleDrawer = useCallback((panel: 'tracks' | 'rag' | 'briefing') => {
+    setRightDrawer((v) => (v === panel ? null : panel))
+  }, [])
 
   const showToast = useCallback((message: string) => {
     setToast(message)
@@ -452,42 +476,51 @@ export function TopicDetail() {
         </div>
       </div>
 
-      {/* Briefing strip — visible above fold */}
+      {/* Briefing strip — collapsible, state persisted in localStorage */}
       {briefing?.summary && (
-        <div className='px-5 py-2.5 border-b border-border bg-accent/5 shrink-0 animate-slide-down'>
-          <div className='max-w-[1400px] mx-auto flex items-start gap-4'>
-            <p className='text-xs text-text-secondary leading-relaxed italic flex-1'>
-              <span className='not-italic font-semibold text-accent mr-1.5'>
-                briefing
-              </span>
-              {briefing.summary}
-            </p>
-            {briefing.key_positions.slice(0, 3).map((pos, i) => {
-              const colors: Record<string, string> = {
-                strong: 'bg-emerald-500/15 text-emerald-400',
-                moderate: 'bg-amber-500/15 text-amber-400',
-                weak: 'bg-red-500/15 text-red-400',
-              }
-              return (
-                <span
-                  key={i}
-                  style={{
-                    animationDelay: `${i * 80}ms`,
-                    animationFillMode: 'backwards',
-                  }}
-                  className={`shrink-0 hidden sm:inline-block animate-fade-in px-2 py-0.5 rounded text-[10px] font-medium max-w-[160px] truncate ${colors[pos.strength] ?? 'bg-surface-3 text-text-tertiary'}`}
-                  title={pos.position}
-                >
-                  {pos.position}
-                </span>
-              )
-            })}
+        <div className='border-b border-border bg-accent/5 shrink-0'>
+          <div className='px-5 py-2 max-w-[1400px] mx-auto flex items-center gap-3'>
+            <button
+              onClick={toggleBriefing}
+              className='flex items-center gap-1 text-[10px] font-semibold text-accent uppercase tracking-wider shrink-0 hover:opacity-80 transition'
+              title={briefingCollapsed ? 'Expand briefing' : 'Collapse briefing'}
+            >
+              <BookOpen size={11} />
+              briefing
+              {briefingCollapsed ? <ChevronDown size={10} /> : <ChevronUp size={10} />}
+            </button>
+            {!briefingCollapsed && (
+              <>
+                <p className='text-xs text-text-secondary leading-relaxed italic flex-1 animate-fade-in'>
+                  {briefing.summary}
+                </p>
+                <div className='hidden sm:flex items-center gap-1.5 shrink-0'>
+                  {briefing.key_positions.slice(0, 3).map((pos, i) => {
+                    const colors: Record<string, string> = {
+                      strong: 'bg-emerald-500/15 text-emerald-400',
+                      moderate: 'bg-amber-500/15 text-amber-400',
+                      weak: 'bg-red-500/15 text-red-400',
+                    }
+                    return (
+                      <span
+                        key={i}
+                        style={{ animationDelay: `${i * 80}ms`, animationFillMode: 'backwards' }}
+                        className={`animate-fade-in px-2 py-0.5 rounded text-[10px] font-medium max-w-[140px] truncate ${colors[pos.strength] ?? 'bg-surface-3 text-text-tertiary'}`}
+                        title={pos.position}
+                      >
+                        {pos.position}
+                      </span>
+                    )
+                  })}
+                </div>
+              </>
+            )}
           </div>
         </div>
       )}
 
-      {/* Three-column body */}
-      <div className='flex-1 flex overflow-hidden'>
+      {/* Two-column body: [optional left explorer] [center] + right slide-in drawer */}
+      <div className='flex-1 flex overflow-hidden relative'>
         {/* LEFT: Explorer sidebar with AI summaries */}
         {explorerOpen && (
           <aside className='w-72 border-r border-border bg-surface-1 shrink-0 flex flex-col overflow-hidden animate-slide-in-right'>
@@ -508,9 +541,10 @@ export function TopicDetail() {
         )}
 
         {/* CENTER: Comment feed / Graph view */}
-        <main className='flex-1 overflow-y-auto flex flex-col'>
-          {/* Tab bar */}
-          <div className='border-b border-border bg-surface-1 px-5 flex items-center gap-0 shrink-0'>
+        <main className='flex-1 overflow-y-auto flex flex-col min-w-0'>
+          {/* Tab bar with right-side tool toggles */}
+          <div className='border-b border-border bg-surface-1 px-5 flex items-center shrink-0'>
+            {/* Left: view tabs */}
             <button
               onClick={() => setCenterTab('comments')}
               className={`flex items-center gap-1.5 px-3 py-2 text-xs font-medium border-b-2 transition-colors ${
@@ -529,8 +563,53 @@ export function TopicDetail() {
                   : 'border-transparent text-text-tertiary hover:text-text-secondary'
               }`}
             >
-              <Network size={12} /> Graph View
+              <Network size={12} /> Graph
             </button>
+
+            {/* Right: tool toggles */}
+            <div className='ml-auto flex items-center gap-0.5'>
+              {briefing && (
+                <button
+                  onClick={() => toggleDrawer('briefing')}
+                  title='Full briefing'
+                  className={`flex items-center gap-1 px-2.5 py-1.5 text-[11px] rounded transition-colors ${
+                    rightDrawer === 'briefing'
+                      ? 'text-accent bg-accent/10'
+                      : 'text-text-tertiary hover:text-text-secondary hover:bg-surface-3'
+                  }`}
+                >
+                  <BookOpen size={12} />
+                  <span className='hidden sm:inline'>Briefing</span>
+                </button>
+              )}
+              {tracks.length > 0 && (
+                <button
+                  onClick={() => toggleDrawer('tracks')}
+                  title='Discourse tracks'
+                  className={`flex items-center gap-1 px-2.5 py-1.5 text-[11px] rounded transition-colors ${
+                    rightDrawer === 'tracks'
+                      ? 'text-accent bg-accent/10'
+                      : 'text-text-tertiary hover:text-text-secondary hover:bg-surface-3'
+                  }`}
+                >
+                  <GitMerge size={12} />
+                  <span className='hidden sm:inline'>Tracks</span>
+                  <span className='ml-0.5 text-[10px] bg-surface-3 px-1 py-0.5 rounded'>{tracks.length}</span>
+                </button>
+              )}
+              <button
+                onClick={() => toggleDrawer('rag')}
+                title='Ask AI about this debate'
+                className={`flex items-center gap-1 px-2.5 py-1.5 text-[11px] rounded transition-colors ${
+                  rightDrawer === 'rag'
+                    ? 'text-accent bg-accent/10'
+                    : 'text-text-tertiary hover:text-text-secondary hover:bg-surface-3'
+                }`}
+              >
+                <Bot size={12} />
+                <span className='hidden sm:inline'>Ask AI</span>
+              </button>
+            </div>
           </div>
 
           {/* Tab content */}
@@ -629,33 +708,55 @@ export function TopicDetail() {
           )}
         </main>
 
-        {/* RIGHT: Tracks + RAG panel */}
-        <aside className='w-60 border-l border-border bg-surface-1 shrink-0 overflow-y-auto hidden xl:flex xl:flex-col'>
-          {/* Tracks */}
-          {tracks.length > 0 && (
-            <div className='px-3 pt-3 pb-2'>
-              <h3 className='text-[10px] font-semibold text-text-tertiary uppercase tracking-wider mb-1.5'>
-                Tracks ({tracks.length})
-              </h3>
-              <div className='space-y-1'>
-                {tracks.map((t) => (
-                  <div
-                    key={t.id}
-                    className='flex items-center justify-between text-[11px] text-text-secondary bg-surface-2 rounded px-2 py-1.5'
-                  >
-                    <span className='font-medium truncate mr-2'>{t.name}</span>
-                    <span className='text-text-tertiary shrink-0'>{t.node_count}</span>
-                  </div>
-                ))}
-              </div>
+        {/* RIGHT: slide-in drawer — Briefing / Tracks / Ask AI */}
+        {rightDrawer && (
+          <aside className='w-72 border-l border-border bg-surface-1 shrink-0 flex flex-col overflow-hidden animate-slide-in-right'>
+            {/* Drawer header */}
+            <div className='flex items-center justify-between px-4 py-2.5 border-b border-border shrink-0'>
+              <span className='text-xs font-semibold text-text-secondary uppercase tracking-wider flex items-center gap-1.5'>
+                {rightDrawer === 'briefing' && <><BookOpen size={12} /> Briefing</>}
+                {rightDrawer === 'tracks' && <><GitMerge size={12} /> Tracks</>}
+                {rightDrawer === 'rag' && <><Bot size={12} /> Ask AI</>}
+              </span>
+              <button
+                onClick={() => setRightDrawer(null)}
+                className='p-1 rounded text-text-tertiary hover:text-text-secondary hover:bg-surface-3 transition'
+              >
+                <X size={13} />
+              </button>
             </div>
-          )}
 
-          {/* RAG Query */}
-          <div className='flex-1'>
-            <RAGQueryPanel topicId={topicId} />
-          </div>
-        </aside>
+            {/* Drawer content */}
+            <div className='flex-1 overflow-y-auto'>
+              {rightDrawer === 'briefing' && briefing && (
+                <div className='p-4'>
+                  <BriefingRoom briefing={briefing} />
+                </div>
+              )}
+              {rightDrawer === 'tracks' && (
+                <div className='p-3 space-y-1'>
+                  {tracks.map((t) => (
+                    <div
+                      key={t.id}
+                      className='flex items-center justify-between text-xs text-text-secondary bg-surface-2 rounded-lg px-3 py-2'
+                    >
+                      <span className='font-medium truncate mr-2'>{t.name}</span>
+                      <span className='text-text-tertiary shrink-0 tabular-nums'>{t.node_count}</span>
+                    </div>
+                  ))}
+                  {tracks.length === 0 && (
+                    <p className='text-xs text-text-tertiary px-2 py-4 text-center'>
+                      Tracks appear as takes are submitted.
+                    </p>
+                  )}
+                </div>
+              )}
+              {rightDrawer === 'rag' && (
+                <RAGQueryPanel topicId={topicId} />
+              )}
+            </div>
+          </aside>
+        )}
       </div>
 
       {/* Toast */}
