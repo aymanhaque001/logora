@@ -150,7 +150,7 @@ function TreeNode({
             </button>
           )}
           {childrenVisible && (
-            <div className='ml-11 pl-4 border-l border-border-subtle space-y-1'>
+            <div className='ml-11 pl-4 border-l-2 border-border space-y-1'>
               {children.map((child) => (
                 <TreeNode
                   key={child.id}

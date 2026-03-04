@@ -343,7 +343,7 @@ export function CurrentFlowGraph({
                 stdDeviation='14'
                 result='blur'
               />
-              <feFlood floodColor='#BF557B' floodOpacity='0.5' result='color' />
+              <feFlood floodColor='#5B7EEA' floodOpacity='0.5' result='color' />
               <feComposite in='color' in2='blur' operator='in' result='glow' />
               <feMerge>
                 <feMergeNode in='glow' />
@@ -455,7 +455,7 @@ export function CurrentFlowGraph({
                     cy={n.y}
                     r={ROOT_R}
                     fill='none'
-                    stroke='#BF557B'
+                    stroke='#5B7EEA'
                     strokeWidth='1'
                   >
                     <animate

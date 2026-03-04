@@ -5,6 +5,8 @@ import { TopicDetail } from './pages/TopicDetail'
 import { CreateTopic } from './pages/CreateTopic'
 import { Auth } from './pages/Auth'
 import { useAuth } from './hooks/useAuth'
+import { useTheme } from './hooks/useTheme'
+import { Sun, Moon } from 'lucide-react'
 
 const queryClient = new QueryClient({
   defaultOptions: { queries: { refetchOnWindowFocus: false, retry: 1 } },
@@ -24,6 +26,7 @@ function CruxMark({ size = 18 }: { size?: number }) {
 
 function AppShell() {
   const { token, user, loading, setAuth, logout } = useAuth()
+  const { theme, toggleTheme } = useTheme()
 
   if (loading) {
     return (
@@ -37,26 +40,51 @@ function AppShell() {
 
   return (
     <div className='min-h-screen flex flex-col'>
-      {/* Navbar */}
-      <nav className='h-14 flex items-center justify-between px-5 border-b border-border bg-surface-1/80 backdrop-blur-md shrink-0'>
+      {/* Navbar — always dark regardless of theme */}
+      <nav
+        className='h-14 flex items-center justify-between px-5 border-b backdrop-blur-md shrink-0 sticky top-0 z-50'
+        style={{
+          background: 'rgba(12, 13, 15, 0.95)',
+          borderBottomColor: 'rgba(191, 85, 123, 0.3)',
+        }}
+      >
         <Link to='/' className='flex items-center gap-2.5 group'>
           <CruxMark size={20} />
-          <span className='text-sm font-light tracking-wide text-text-primary lowercase'>
+          <span className='text-sm font-light tracking-wide text-white/85 lowercase'>
             Crux
           </span>
         </Link>
         <div className='flex items-center gap-3'>
-          <span className='text-xs font-light text-text-tertiary'>
+          <span className='text-xs font-light text-white/35'>
             {user?.display_name}
           </span>
           <button
             onClick={logout}
-            className='text-xs font-light text-text-tertiary hover:text-text-secondary transition'
+            className='text-xs font-light text-white/35 hover:text-white/65 transition'
           >
             sign out
           </button>
-          <div className='w-7 h-7 rounded-full bg-accent/20 flex items-center justify-center'>
-            <span className='text-[11px] font-medium text-accent'>
+          {/* Theme toggle */}
+          <button
+            onClick={toggleTheme}
+            className='w-7 h-7 rounded-full flex items-center justify-center text-white/45 hover:text-white/85 hover:bg-white/10 transition'
+            title={
+              theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'
+            }
+          >
+            {theme === 'dark' ? <Sun size={14} /> : <Moon size={14} />}
+          </button>
+          <div
+            className='w-7 h-7 rounded-full flex items-center justify-center'
+            style={{
+              background: 'rgba(191,85,123,0.22)',
+              border: '1px solid rgba(191,85,123,0.4)',
+            }}
+          >
+            <span
+              className='text-[11px] font-medium'
+              style={{ color: '#d4698f' }}
+            >
               {user?.display_name?.[0]?.toUpperCase()}
             </span>
           </div>

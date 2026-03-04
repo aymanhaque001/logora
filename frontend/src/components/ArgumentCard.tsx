@@ -22,13 +22,13 @@ import { useState, useEffect, useRef } from 'react'
 import { getAvailableTransitions } from '../api/client'
 
 const NODE_ACCENT: Record<string, string> = {
-  assertion: '#BF557B',
+  assertion: '#5B7EEA',
   counter: '#ef4444',
   qualification: '#f59e0b',
   exception: '#f97316',
   synthesis: '#22c55e',
   reframe: '#a855f7',
-  open_question: '#6e5a7e',
+  open_question: '#64748b',
   concession: '#14b8a6',
 }
 
@@ -172,23 +172,29 @@ export function ArgumentCard({
       } ${highlighted ? 'ring-1 ring-accent ring-offset-1 ring-offset-surface-0 rounded-lg animate-pulse-node' : ''}`}
     >
       {/* Comment-style layout */}
-      <div className='flex gap-3'>
+      <div className='flex gap-2.5'>
         {/* Avatar column */}
         <div className='flex flex-col items-center shrink-0'>
           <div
-            className='w-8 h-8 rounded-full flex items-center justify-center text-[11px] font-semibold text-white'
+            className='w-7 h-7 rounded-full flex items-center justify-center text-[11px] font-semibold text-white mt-0.5'
             style={{ background: accent }}
           >
             {node.author.display_name?.[0]?.toUpperCase()}
           </div>
           {/* Thread line */}
           {depth === 0 && node.children_count > 0 && (
-            <div className='w-px flex-1 bg-border mt-1.5 min-h-[8px]' />
+            <div
+              className='w-[2px] flex-1 mt-1.5 min-h-[8px] rounded-full'
+              style={{ background: `${accent}30` }}
+            />
           )}
         </div>
 
-        {/* Content */}
-        <div className='flex-1 min-w-0 pb-4'>
+        {/* Content card */}
+        <div
+          className='flex-1 min-w-0 pb-3 pt-2.5 px-3 rounded-md arg-card-body'
+          style={{ borderLeft: `2px solid ${accent}55` }}
+        >
           {/* Author line */}
           <div className='flex items-center gap-2 mb-1'>
             <span className='text-sm font-medium text-text-primary'>

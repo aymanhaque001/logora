@@ -86,10 +86,10 @@ const EDGE_COLORS: Record<EdgeRelationship, string> = {
   supports: '#22c55e',
   challenges: '#ef4444',
   qualifies: '#f59e0b',
-  refines: '#BF557B',
+  refines: '#5B7EEA',
   contradicts: '#dc2626',
   synthesizes: '#14b8a6',
-  questions: '#6e5a7e',
+  questions: '#64748b',
 }
 
 const STATE_COLORS: Record<
@@ -103,16 +103,16 @@ const STATE_COLORS: Record<
     accent: '#f59e0b',
   },
   engaged: {
-    bg: '#1e1b4b',
-    border: '#BF557B',
+    bg: '#111827',
+    border: '#5B7EEA',
     text: '#c7d2fe',
-    accent: '#BF557B',
+    accent: '#5B7EEA',
   },
   refined: {
-    bg: '#2e1065',
-    border: '#d4698f',
+    bg: '#1e1b4b',
+    border: '#7193F5',
     text: '#ddd6fe',
-    accent: '#d4698f',
+    accent: '#7193F5',
   },
   branched: {
     bg: '#3b0764',
@@ -133,10 +133,10 @@ const STATE_COLORS: Record<
     accent: '#14b8a6',
   },
   dormant: {
-    bg: '#1e1528',
-    border: '#6e5a7e',
-    text: '#a893b8',
-    accent: '#6e5a7e',
+    bg: '#16181c',
+    border: '#64748b',
+    text: '#8b94a8',
+    accent: '#64748b',
   },
 }
 
@@ -403,23 +403,23 @@ function getNodeColors(
       // Low connectivity = dim, high = bright
       if (t < 0.3)
         return {
-          bg: '#1e1528',
+          bg: '#16181c',
           border: '#3d2a50',
-          text: '#a893b8',
-          accent: '#6e5a7e',
+          text: '#8b94a8',
+          accent: '#64748b',
         }
       if (t < 0.6)
         return {
           bg: '#1e1b4b',
-          border: '#BF557B',
+          border: '#5B7EEA',
           text: '#c7d2fe',
-          accent: '#BF557B',
+          accent: '#5B7EEA',
         }
       return {
         bg: '#312e81',
-        border: '#d4698f',
+        border: '#7193F5',
         text: '#e0e7ff',
-        accent: '#d4698f',
+        accent: '#7193F5',
       }
     }
   }
@@ -461,7 +461,7 @@ function ExpandedNodeCard({ data }: NodeProps<ExpandedNodeData>) {
       onClick={() => onNodeClick(n.id)}
       style={{
         background: '#160f1e',
-        border: `1.5px solid ${selected ? '#f0eaf4' : c.border}`,
+        border: `1.5px solid ${selected ? '#eceff4' : c.border}`,
         borderLeft: `4px solid ${c.border}`,
         borderRadius: 10,
         width: NODE_W,
@@ -510,8 +510,8 @@ function ExpandedNodeCard({ data }: NodeProps<ExpandedNodeData>) {
             <span
               key={tag}
               style={{
-                background: '#281d34',
-                color: '#a893b8',
+                background: '#1e2028',
+                color: '#8b94a8',
                 fontSize: 9,
                 padding: '1px 5px',
                 borderRadius: 4,
@@ -525,7 +525,7 @@ function ExpandedNodeCard({ data }: NodeProps<ExpandedNodeData>) {
             <span
               style={{
                 background: 'rgba(99,102,241,0.15)',
-                color: '#d4698f',
+                color: '#7193F5',
                 fontSize: 9,
                 padding: '1px 5px',
                 borderRadius: 4,
@@ -545,7 +545,7 @@ function ExpandedNodeCard({ data }: NodeProps<ExpandedNodeData>) {
             margin: 0,
             fontSize: 11,
             lineHeight: 1.55,
-            color: '#f0eaf4',
+            color: '#eceff4',
           }}
         >
           {displayText}
@@ -565,13 +565,13 @@ function ExpandedNodeCard({ data }: NodeProps<ExpandedNodeData>) {
         <div
           style={{
             fontSize: 10,
-            color: '#6e5a7e',
+            color: '#64748b',
             display: 'flex',
             alignItems: 'center',
             gap: 4,
           }}
         >
-          <span style={{ color: '#a893b8', fontWeight: 500 }}>
+          <span style={{ color: '#8b94a8', fontWeight: 500 }}>
             {n.author_display_name}
           </span>
           {n.track_name && (
@@ -583,8 +583,8 @@ function ExpandedNodeCard({ data }: NodeProps<ExpandedNodeData>) {
             style={{
               background: STATE_COLORS[n.state]?.accent
                 ? `${STATE_COLORS[n.state].accent}20`
-                : '#281d34',
-              color: STATE_COLORS[n.state]?.accent ?? '#6e5a7e',
+                : '#1e2028',
+              color: STATE_COLORS[n.state]?.accent ?? '#64748b',
               fontSize: 9,
               padding: '1px 5px',
               borderRadius: 4,
@@ -597,7 +597,7 @@ function ExpandedNodeCard({ data }: NodeProps<ExpandedNodeData>) {
             <span
               style={{
                 background: 'rgba(99,102,241,0.15)',
-                color: '#d4698f',
+                color: '#7193F5',
                 fontSize: 9,
                 padding: '1px 5px',
                 borderRadius: 4,
@@ -615,8 +615,8 @@ function ExpandedNodeCard({ data }: NodeProps<ExpandedNodeData>) {
               onToggle(n.id)
             }}
             style={{
-              background: collapsed ? c.accent : '#281d34',
-              color: collapsed ? '#fff' : '#a893b8',
+              background: collapsed ? c.accent : '#1e2028',
+              color: collapsed ? '#fff' : '#8b94a8',
               border: 'none',
               borderRadius: 4,
               padding: '2px 8px',
@@ -1041,16 +1041,16 @@ function ExpandedMapInner({
         label: e.relationship_type,
         animated: ['challenges', 'contradicts'].includes(e.relationship_type),
         style: {
-          stroke: EDGE_COLORS[e.relationship_type] ?? '#6e5a7e',
+          stroke: EDGE_COLORS[e.relationship_type] ?? '#64748b',
           strokeWidth: 1.5,
         },
         markerEnd: {
           type: MarkerType.ArrowClosed,
-          color: EDGE_COLORS[e.relationship_type] ?? '#6e5a7e',
+          color: EDGE_COLORS[e.relationship_type] ?? '#64748b',
           width: 14,
           height: 14,
         },
-        labelStyle: { fontSize: 10, fill: '#a893b8', fontWeight: 500 },
+        labelStyle: { fontSize: 10, fill: '#8b94a8', fontWeight: 500 },
         labelBgStyle: { fill: 'rgba(19,22,26,0.95)' },
         labelBgPadding: [4, 6] as [number, number],
         labelBgBorderRadius: 4,
@@ -1286,7 +1286,7 @@ function ExpandedMapInner({
             <MiniMap
               nodeColor={(n) => {
                 const gn = n.data?.graphNode as GraphNode | undefined
-                if (!gn) return '#6e5a7e'
+                if (!gn) return '#64748b'
                 return getNodeColors(gn, colorMode, graphNodes, graphEdges)
                   .accent
               }}
@@ -1368,14 +1368,14 @@ function ExpandedMapInner({
                   <div className='flex items-center gap-1 text-text-tertiary'>
                     <span
                       className='w-2.5 h-2.5 rounded-sm'
-                      style={{ background: '#BF557B' }}
+                      style={{ background: '#5B7EEA' }}
                     />{' '}
                     Medium
                   </div>
                   <div className='flex items-center gap-1 text-text-tertiary'>
                     <span
                       className='w-2.5 h-2.5 rounded-sm'
-                      style={{ background: '#d4698f' }}
+                      style={{ background: '#7193F5' }}
                     />{' '}
                     High
                   </div>

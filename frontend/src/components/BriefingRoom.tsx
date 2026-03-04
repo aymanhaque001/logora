@@ -142,7 +142,7 @@ export function BriefingRoom({ briefing }: Props) {
           <TrendingUp size={11} /> Health
         </h3>
         <div className='space-y-3'>
-          <HealthBar value={h.sourced_ratio} label='Sourced' color='#BF557B' />
+          <HealthBar value={h.sourced_ratio} label='Sourced' color='#5B7EEA' />
           <HealthBar
             value={h.engagement_ratio}
             label='Engaged'

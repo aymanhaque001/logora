@@ -3,6 +3,46 @@
 @tailwind utilities;
 
 @layer base {
+  /* ── Dark theme — true neutral dark (GitHub/Linear inspired) ── */
+  :root {
+    --c-surface-0: 12 13 15; /* #0c0d0f  near-black  */
+    --c-surface-1: 22 24 28; /* #16181c  card bg     */
+    --c-surface-2: 32 35 40; /* #202328  lifted card  */
+    --c-surface-3: 44 48 56; /* #2c3038  hover/select */
+    --c-surface-4: 36 32 72; /* #242048  kept for legacy */
+    --c-border: 95 50 68;            /* #5f3244  plum-tinted edge     */
+    --c-border-subtle: 58 36 48;     /* #3a2430  subtle plum seam     */
+    --c-border-hover: 148 72 104;    /* #944868  plum hover edge      */
+    --c-accent: 91 126 234; /* #5B7EEA  electric indigo */
+    --c-accent-hover: 113 147 245; /* #7193F5  lighter hover   */
+    --c-text-primary: 236 239 244; /* #eceff4                  */
+    --c-text-secondary: 152 160 176; /* #98a0b0                  */
+    --c-text-tertiary: 86 94 112; /* #565e70                  */
+    --c-text-inverse: 12 13 15;
+    --c-input-bg: 16 18 22; /* inputs slightly DARKER than card */
+    --c-plum: 191 85 123; /* #BF557B  plum rose accent         */
+  }
+
+  /* ── Light theme — zinc neutrals (GitHub/Reddit inspired) ──── */
+  html.light {
+    --c-surface-0: 234 236 240; /* #eaecf0  page bg — clearly gray  */
+    --c-surface-1: 255 255 255; /* #ffffff  cards                    */
+    --c-surface-2: 246 248 250; /* #f6f8fa  nested panels            */
+    --c-surface-3: 234 237 242; /* #eaedf2  deeper nesting           */
+    --c-surface-4: 36 32 72;
+    --c-border: 200 170 183;        /* #c8aab7  plum-tinted card edge */
+    --c-border-subtle: 220 200 210; /* #dcc8d2  subtle plum seam     */
+    --c-border-hover: 170 115 143;  /* #aa738f  plum hover edge      */
+    --c-accent: 60 103 210; /* #3C67D2  darker for light bg      */
+    --c-accent-hover: 42 82 188; /* #2A52BC  pressed                  */
+    --c-text-primary: 18 20 24; /* #121418  near-black               */
+    --c-text-secondary: 78 86 102; /* #4e5666                           */
+    --c-text-tertiary: 136 144 160; /* #8890a0                           */
+    --c-text-inverse: 234 236 240;
+    --c-input-bg: 246 248 250; /* inputs slightly darker than white */
+    --c-plum: 168 56 98; /* #a83862  darker plum for light bg */
+  }
+
   html {
     scroll-behavior: smooth;
     -webkit-font-smoothing: antialiased;
@@ -11,14 +51,14 @@
 
   body {
     min-height: 100vh;
-    background-color: #0e0812;
-    color: #f0eaf4;
+    background-color: rgb(var(--c-surface-0));
+    color: rgb(var(--c-text-primary));
     font-weight: 300;
   }
 
   ::selection {
-    background-color: rgba(191, 85, 123, 0.35);
-    color: #f0eaf4;
+    background-color: rgba(191, 85, 123, 0.28);
+    color: rgb(var(--c-text-primary));
   }
 
   ::-webkit-scrollbar {
@@ -29,88 +69,137 @@
     background: transparent;
   }
   ::-webkit-scrollbar-thumb {
-    background: #2e1f3a;
+    background: rgb(var(--c-surface-3));
     border-radius: 9999px;
   }
   ::-webkit-scrollbar-thumb:hover {
-    background: #3d2a50;
+    background: rgb(var(--c-border));
   }
 }
 
 @layer components {
   .btn-primary {
-    background-color: #bf557b;
+    background-color: rgb(var(--c-accent));
     color: #fff;
     font-weight: 500;
     border-radius: 0.75rem;
     transition: background-color 150ms;
   }
   .btn-primary:hover {
-    background-color: #d4698f;
+    background-color: rgb(var(--c-accent-hover));
   }
   .btn-primary:disabled {
-    opacity: 0.5;
+    opacity: 0.45;
     cursor: not-allowed;
   }
 
   .btn-secondary {
-    background-color: #1e1528;
-    color: #f0eaf4;
+    background-color: rgb(var(--c-surface-2));
+    color: rgb(var(--c-text-primary));
     font-weight: 500;
-    border: 1px solid #2e1f3a;
+    border: 1px solid rgb(var(--c-border));
     border-radius: 0.75rem;
     transition: all 150ms;
   }
   .btn-secondary:hover {
-    background-color: #281d34;
-    border-color: #3d2a50;
+    background-color: rgb(var(--c-surface-3));
+    border-color: rgb(var(--c-border-hover));
   }
 
   .btn-ghost {
     background: transparent;
-    color: #a893b8;
+    color: rgb(var(--c-text-secondary));
     font-weight: 500;
     transition: all 150ms;
   }
   .btn-ghost:hover {
-    color: #f0eaf4;
-    background-color: #1e1528;
+    color: rgb(var(--c-text-primary));
+    background-color: rgb(var(--c-surface-2));
   }
 
+  /* Inputs are deliberately DARKER than their card container — Discord/Linear pattern */
   .input-field {
     width: 100%;
-    border: 1px solid #2e1f3a;
+    border: 1px solid rgb(var(--c-border));
     border-radius: 0.75rem;
     padding: 0.625rem 0.875rem;
     font-size: 0.875rem;
     font-weight: 300;
-    background-color: #160f1e;
-    color: #f0eaf4;
+    background-color: rgb(var(--c-input-bg));
+    color: rgb(var(--c-text-primary));
     transition: all 150ms;
   }
   .input-field::placeholder {
-    color: #6e5a7e;
+    color: rgb(var(--c-text-tertiary));
   }
   .input-field:focus {
     outline: none;
-    border-color: #bf557b;
-    box-shadow: 0 0 0 2px rgba(191, 85, 123, 0.15);
+    border-color: rgba(191, 85, 123, 0.75);
+    box-shadow: 0 0 0 2px rgba(191, 85, 123, 0.18);
+  }
+
+  /* Plum-focused input variant — for search/database query fields */
+  .input-field-plum:focus {
+    border-color: rgba(191, 85, 123, 0.7);
+    box-shadow: 0 0 0 2px rgba(191, 85, 123, 0.18);
   }
 
   .card {
-    background-color: #160f1e;
-    border: 1px solid #2e1f3a;
+    background-color: rgb(var(--c-surface-1));
+    border: 1px solid rgb(var(--c-border));
     border-radius: 0.75rem;
   }
 
   .card-hover {
-    background-color: #160f1e;
-    border: 1px solid #2e1f3a;
+    background-color: rgb(var(--c-surface-1));
+    border: 1px solid rgb(var(--c-border));
     border-radius: 0.75rem;
     transition: all 150ms;
   }
   .card-hover:hover {
-    border-color: #3d2a50;
-    background-color: #1e1528;
+    border-color: rgb(var(--c-border-hover));
+    background-color: rgb(var(--c-surface-2));
+  }
+
+  /* Light mode: cards and surface-2 panels get drop shadows */
+  html.light .card,
+  html.light .card-hover {
+    box-shadow:
+      0 1px 3px rgba(18, 20, 24, 0.08),
+      0 0 0 1px rgba(18, 20, 24, 0.04);
+  }
+  html.light .card-hover:hover {
+    box-shadow: 0 3px 8px rgba(18, 20, 24, 0.12);
+  }
+  html.light .bg-surface-2 {
+    box-shadow: 0 1px 3px rgba(18, 20, 24, 0.07);
+  }
+
+  /* Dark mode: subtle top-edge highlight on surface-2 */
+  html:not(.light) .bg-surface-2 {
+    box-shadow: 0 1px 0 0 rgba(255, 255, 255, 0.04) inset;
+  }
+
+  /* Argument card body — adapts to theme */
+  .arg-card-body {
+    background: rgb(var(--c-surface-1));
+  }
+  html.light .arg-card-body {
+    background: #ffffff;
+    box-shadow: 0 1px 3px rgba(18, 20, 24, 0.08);
+  }
+
+  /* Plum decorative borders — used on panels, sidebars, dividers */
+  .plum-top {
+    border-top: 1px solid rgba(191, 85, 123, 0.35);
+  }
+  .plum-left {
+    border-left: 2px solid rgba(191, 85, 123, 0.45);
+  }
+  html.light .plum-top {
+    border-top-color: rgba(168, 56, 98, 0.3);
+  }
+  html.light .plum-left {
+    border-left-color: rgba(168, 56, 98, 0.4);
   }
 }

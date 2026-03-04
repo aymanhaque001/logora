@@ -49,7 +49,7 @@ export function HomeRAGQuery() {
   }
 
   return (
-    <div className='bg-surface-1 border border-border-subtle rounded-lg overflow-hidden'>
+    <div className='bg-surface-1 border rounded-lg overflow-hidden' style={{ borderColor: 'rgba(191, 85, 123, 0.4)' }}>
       {/* Header + form */}
       <div className='px-4 py-3'>
         <div className='flex items-center gap-2 mb-3'>
@@ -71,7 +71,7 @@ export function HomeRAGQuery() {
                 setSelectedTopicId(e.target.value)
                 clearResult()
               }}
-              className='appearance-none bg-surface-2 border border-border-subtle rounded-lg pl-3 pr-7 py-2 text-xs text-text-primary focus:outline-none focus:border-accent/50 transition min-w-[180px] max-w-[240px] truncate'
+              className='appearance-none bg-surface-2 border border-border-subtle rounded-lg pl-3 pr-7 py-2 text-xs text-text-primary focus:outline-none transition min-w-[180px] max-w-[240px] truncate input-field-plum'
             >
               <option value=''>Select a debate...</option>
               {topics?.map((t) => (
@@ -102,7 +102,7 @@ export function HomeRAGQuery() {
                   : 'Select a debate first...'
               }
               disabled={!selectedTopicId || mutation.isPending}
-              className='input-field pl-8 py-2 text-xs disabled:opacity-40'
+              className='input-field input-field-plum pl-8 py-2 text-xs disabled:opacity-40'
             />
           </div>
 
@@ -144,7 +144,7 @@ export function HomeRAGQuery() {
 
       {/* Result */}
       {result && (
-        <div className='border-t border-border-subtle'>
+        <div className='border-t' style={{ borderColor: 'rgba(191, 85, 123, 0.3)' }}>
           <div className='px-4 py-3'>
             <div className='flex items-start justify-between gap-2 mb-2'>
               <div className='flex items-center gap-1.5'>

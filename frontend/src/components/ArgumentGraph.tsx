@@ -45,9 +45,9 @@ export const NODE_COLORS: Record<
 > = {
   assertion: {
     bg: '#1e1b4b',
-    border: '#BF557B',
+    border: '#5B7EEA',
     text: '#c7d2fe',
-    accent: '#BF557B',
+    accent: '#5B7EEA',
   },
   counter: {
     bg: '#450a0a',
@@ -80,10 +80,10 @@ export const NODE_COLORS: Record<
     accent: '#a855f7',
   },
   open_question: {
-    bg: '#1e1528',
-    border: '#6e5a7e',
-    text: '#a893b8',
-    accent: '#6e5a7e',
+    bg: '#16181c',
+    border: '#565e70',
+    text: '#8b94a8',
+    accent: '#565e70',
   },
   concession: {
     bg: '#042f2e',
@@ -97,10 +97,10 @@ const EDGE_COLORS: Record<EdgeRelationship, string> = {
   supports: '#22c55e',
   challenges: '#ef4444',
   qualifies: '#f59e0b',
-  refines: '#BF557B',
+  refines: '#5B7EEA',
   contradicts: '#dc2626',
   synthesizes: '#14b8a6',
-  questions: '#6e5a7e',
+  questions: '#64748b',
 }
 
 const NODE_W = 240
@@ -304,8 +304,8 @@ function ArgumentNodeCard({ data }: NodeProps<NodeData>) {
               style={{
                 marginLeft: 'auto',
                 background: collapsed ? c.accent : 'transparent',
-                color: collapsed ? '#0e0812' : '#6e5a7e',
-                border: `1px solid ${collapsed ? c.accent : '#3a2848'}`,
+                color: collapsed ? '#0c0d0f' : '#64748b',
+                border: `1px solid ${collapsed ? c.accent : '#2c3038'}`,
                 borderRadius: 3,
                 padding: '1px 5px',
                 fontSize: 9,
@@ -344,7 +344,7 @@ function ArgumentNodeCard({ data }: NodeProps<NodeData>) {
               margin: 0,
               fontSize: 12.5,
               lineHeight: 1.45,
-              color: concept ? '#f0eaf4' : '#7a6888',
+              color: concept ? '#eceff4' : '#7a6888',
               fontWeight: concept ? 400 : 300,
               fontStyle: concept ? 'normal' : 'italic',
               overflow: 'hidden',
@@ -457,8 +457,8 @@ function ArgumentNodeCard({ data }: NodeProps<NodeData>) {
         {n.nuance_tags[0] && (
           <span
             style={{
-              background: '#281d34',
-              color: '#6e5a7e',
+              background: '#1e2028',
+              color: '#64748b',
               fontSize: 9,
               padding: '1px 4px',
               borderRadius: 3,
@@ -475,7 +475,7 @@ function ArgumentNodeCard({ data }: NodeProps<NodeData>) {
             margin: 0,
             fontSize: 11.5,
             lineHeight: 1.4,
-            color: concept ? '#f0eaf4' : '#c4adc9',
+            color: concept ? '#eceff4' : '#9ca1ac',
             fontWeight: concept ? 400 : 300,
             overflow: 'hidden',
             display: '-webkit-box',
@@ -499,7 +499,7 @@ function ArgumentNodeCard({ data }: NodeProps<NodeData>) {
         <span
           style={{
             fontSize: 9.5,
-            color: '#6e5a7e',
+            color: '#64748b',
             overflow: 'hidden',
             textOverflow: 'ellipsis',
             whiteSpace: 'nowrap',
@@ -520,8 +520,8 @@ function ArgumentNodeCard({ data }: NodeProps<NodeData>) {
               onToggle(n.id)
             }}
             style={{
-              background: collapsed ? c.accent : '#281d34',
-              color: collapsed ? '#0e0812' : '#a893b8',
+              background: collapsed ? c.accent : '#1e2028',
+              color: collapsed ? '#0c0d0f' : '#8b94a8',
               border: 'none',
               borderRadius: 4,
               padding: '2px 7px',
@@ -681,7 +681,7 @@ function GraphInner({
       const isCross =
         'is_cross_topic' in e && (e as MeshGraphEdge).is_cross_topic
       const rel = e.relationship_type as EdgeRelationship
-      const strokeColor = isCross ? '#f59e0b' : (EDGE_COLORS[rel] ?? '#6e5a7e')
+      const strokeColor = isCross ? '#f59e0b' : (EDGE_COLORS[rel] ?? '#64748b')
       return {
         id: e.id,
         source: e.source,
@@ -701,7 +701,7 @@ function GraphInner({
         },
         labelStyle: {
           fontSize: 9,
-          fill: isCross ? '#f59e0b' : '#a893b8',
+          fill: isCross ? '#f59e0b' : '#8b94a8',
           fontWeight: 500,
         },
         labelBgStyle: { fill: 'rgba(14,8,18,0.9)' },
@@ -829,7 +829,7 @@ function GraphInner({
           <MiniMap
             nodeColor={(n) =>
               NODE_COLORS[n.data?.graphNode?.node_type as NodeType]?.accent ??
-              '#6e5a7e'
+              '#64748b'
             }
             maskColor='rgba(14,8,18,0.85)'
             style={{ border: '1px solid #2e1f3a', borderRadius: 8 }}
