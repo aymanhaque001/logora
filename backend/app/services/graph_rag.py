@@ -36,8 +36,9 @@ def _expand_graph(
         if not frontier or len(result) >= max_nodes:
             break
 
-        # Fetch nodes in this frontier
-        nodes = db.query(ArgumentNode).filter(
+        # Fetch nodes in this frontier (eager-load author for attribution)
+        from sqlalchemy.orm import joinedload as _jl
+        nodes = db.query(ArgumentNode).options(_jl(ArgumentNode.author)).filter(
             ArgumentNode.id.in_(list(frontier))
         ).all()
 
@@ -52,6 +53,7 @@ def _expand_graph(
                 "content": node.content,
                 "node_type": node.node_type.value if hasattr(node.node_type, 'value') else node.node_type,
                 "state": node.state.value if hasattr(node.state, 'value') else node.state,
+                "author_display_name": node.author.display_name if node.author else "",
                 "parent_id": node.parent_id,
                 "track_id": node.track_id,
                 "ai_summary": node.ai_summary,
@@ -361,24 +363,35 @@ def rag_briefing(
     def _fmt_node(n: dict) -> str:
         author = n.get("author_display_name") or n.get("metadata", {}).get("author_display_name") or "unknown"
         node_type = n.get('node_type', '?').upper()
+        state = n.get('state', '')
+        state_tag = f" [{state.upper()}]" if state in _TERMINAL_STATES else ""
         sim = n.get('similarity')
         sim_str = f", sim: {sim:.2f}" if isinstance(sim, float) and sim < 1.0 else ""
-        return f"[{node_type}] by {author}{sim_str}:\n{n['content'][:400]}"
+        return f"[{node_type}{state_tag}] by {author}{sim_str}:\n{n['content'][:400]}"
 
-    context_text = "\n\n".join([_fmt_node(n) for n in ctx["merged_context"][:20]])
+    context_text = "\n\n".join([_fmt_node(n) for n in sorted_ctx[:20]])
+
+    _TERMINAL_STATES = {'conceded', 'dormant', 'merged'}
+    # Sort: active arguments first, terminal (conceded/dormant/merged) last
+    sorted_ctx = sorted(
+        ctx["merged_context"],
+        key=lambda n: (1 if n.get('state') in _TERMINAL_STATES else 0),
+    )
 
     system = """You are a neutral debate analyst using retrieved context to answer questions about an ongoing debate.
 Only use information from the provided context. If the context doesn't contain enough information, say so.
-Cite specific arguments when possible. Be balanced and present all sides."""
+Cite the author by name when possible (e.g. "Alice argues that...").
+Arguments labeled [CONCEDED], [DORMANT], or [MERGED] were withdrawn or overturned — note this when citing them.
+Be balanced and present all sides."""
 
     user = f"""DEBATE TOPIC: {topic_question}
 
 QUESTION: {query}
 
-RETRIEVED CONTEXT (from vector search + graph expansion):
+RETRIEVED CONTEXT ({len(sorted_ctx)} arguments, active first — conceded/dormant labeled):
 {context_text}
 
-Provide a thorough, balanced answer based on the debate context above."""
+Provide a thorough, balanced answer based on the debate context above. Where possible, cite the author by name."""
 
     try:
         answer = _call_claude(system, user)
@@ -386,6 +399,20 @@ Provide a thorough, balanced answer based on the debate context above."""
             "answer": answer,
             "context_used": len(ctx["merged_context"]),
             "retrieval_stats": ctx["stats"],
+            "source_nodes": [
+                {
+                    "id": n["id"],
+                    "content_preview": n["content"][:120],
+                    "author": (
+                        n.get("author_display_name")
+                        or n.get("metadata", {}).get("author_display_name")
+                        or "unknown"
+                    ),
+                    "state": n.get("state"),
+                    "node_type": n.get("node_type"),
+                }
+                for n in sorted_ctx[:12]
+            ],
             "ai_powered": True,
         }
     except Exception as e:

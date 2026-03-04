@@ -189,6 +189,37 @@ export function RAGQueryPanel({ topicId }: Props) {
                   </p>
                 </div>
 
+                {/* Source nodes */}
+                {entry.result.source_nodes && entry.result.source_nodes.length > 0 && (
+                  <div className='px-3 pb-2.5'>
+                    <p className='text-[10px] text-text-tertiary font-medium uppercase tracking-wider mb-1.5'>Sources used</p>
+                    <div className='flex flex-col gap-1'>
+                      {entry.result.source_nodes.slice(0, 6).map((node) => {
+                        const isTerminal = ['conceded', 'dormant', 'merged'].includes(node.state ?? '')
+                        return (
+                          <div
+                            key={node.id}
+                            className={`rounded-md px-2 py-1.5 text-[11px] leading-snug ${
+                              isTerminal
+                                ? 'bg-surface-2 opacity-60 line-through-none'
+                                : 'bg-surface-2'
+                            }`}
+                          >
+                            <span className={`inline-block mr-1.5 font-semibold text-[10px] uppercase ${
+                              isTerminal ? 'text-text-tertiary' : 'text-accent'
+                            }`}>
+                              [{node.node_type ?? '?'}]
+                              {isTerminal && ` · ${node.state}`}
+                            </span>
+                            <span className='text-text-tertiary'>by {node.author} · </span>
+                            <span className='text-text-secondary'>{node.content_preview}</span>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  </div>
+                )}
+
                 {/* Retrieval stats */}
                 {entry.result.retrieval_stats && (
                   <div className='px-3 py-2 border-t border-border-subtle'>

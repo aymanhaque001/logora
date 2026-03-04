@@ -305,5 +305,12 @@ export interface RAGQueryResult {
     merged_count: number
     unique_from_graph: number
   }
+  source_nodes?: Array<{
+    id: string
+    content_preview: string
+    author: string
+    state?: string
+    node_type?: string
+  }>
   ai_powered: boolean
 }

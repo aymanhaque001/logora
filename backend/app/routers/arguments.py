@@ -272,6 +272,18 @@ def update_argument(
 
     db.commit()
     db.refresh(node)
+    # Keep vector store in sync when content was modified
+    if "content" in update_data and update_data["content"]:
+        vs.add_argument(
+            argument_id=node.id,
+            content=node.content,
+            topic_id=node.topic_id,
+            node_type=node.node_type.value if hasattr(node.node_type, 'value') else str(node.node_type),
+            track_id=node.track_id,
+            author_id=node.author_id,
+            author_display_name=current_user.display_name,
+            parent_id=node.parent_id,
+        )
     out = ArgumentNodeOut.model_validate(node)
     out.children_count = len(node.children)
     return out
@@ -302,6 +314,7 @@ def delete_argument(
 
     db.delete(node)
     db.commit()
+    vs.remove_argument(argument_id)  # Purge from vector store so RAG never cites deleted args
     return None
 
 
