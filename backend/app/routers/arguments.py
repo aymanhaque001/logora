@@ -175,6 +175,7 @@ def submit_argument(
         node_type=node.node_type.value if hasattr(node.node_type, 'value') else node.node_type,
         track_id=node.track_id,
         author_id=node.author_id,
+        author_display_name=current_user.display_name,
         parent_id=node.parent_id,
     )
 
@@ -511,7 +512,7 @@ def rag_query(
 ):
     """
     Graph RAG-powered question answering about a specific debate.
-    Body: { "query": "What evidence supports X?" }
+    Body: { "query": "What evidence supports X?", "author_id": "<optional uuid>" }
     """
     topic = db.query(Topic).filter(Topic.id == topic_id).first()
     if not topic:
@@ -521,11 +522,14 @@ def rag_query(
     if not query:
         raise HTTPException(status_code=400, detail="query is required")
 
+    author_id = payload.get("author_id") or None
+
     result = graph_rag.rag_briefing(
         topic_question=topic.canonical_question,
         query=query,
         topic_id=topic_id,
         db=db,
+        author_id=author_id,
     )
     return result
 

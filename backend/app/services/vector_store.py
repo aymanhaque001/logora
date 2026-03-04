@@ -82,6 +82,7 @@ def add_argument(
     node_type: str,
     track_id: Optional[str] = None,
     author_id: Optional[str] = None,
+    author_display_name: Optional[str] = None,
     parent_id: Optional[str] = None,
 ) -> bool:
     """Add or update an argument embedding in the vector store."""
@@ -98,6 +99,7 @@ def add_argument(
         "node_type": node_type,
         "track_id": track_id or "",
         "author_id": author_id or "",
+        "author_display_name": (author_display_name or "").lower(),  # lowercase for case-insensitive matching
         "parent_id": parent_id or "",
         "content_preview": content[:200],
     }
@@ -128,14 +130,53 @@ def remove_argument(argument_id: str) -> bool:
         return False
 
 
+def get_by_author(
+    author_id: str,
+    topic_id: Optional[str] = None,
+    limit: int = 50,
+) -> list[dict]:
+    """
+    Retrieve all indexed arguments by a specific author_id via metadata filter.
+    Does NOT use semantic search — returns everything authored by this user.
+    """
+    collection = _get_collection()
+    if collection is None:
+        return []
+
+    where_filter: dict = {"author_id": author_id}
+    if topic_id:
+        where_filter = {"$and": [{"author_id": author_id}, {"topic_id": topic_id}]}
+
+    try:
+        results = collection.get(
+            where=where_filter,
+            include=["documents", "metadatas"],
+            limit=limit,
+        )
+        hits = []
+        for i, doc_id in enumerate(results["ids"]):
+            hits.append({
+                "id": doc_id,
+                "content": results["documents"][i],
+                "similarity": 1.0,  # exact match by author
+                "metadata": results["metadatas"][i],
+            })
+        return hits
+    except Exception as e:
+        print(f"[VectorStore] get_by_author error: {e}", file=sys.stderr)
+        return []
+
+
 def search_similar(
     query: str,
     topic_id: Optional[str] = None,
+    author_id: Optional[str] = None,
     n_results: int = 10,
     exclude_ids: Optional[list[str]] = None,
 ) -> list[dict]:
     """
     Find arguments semantically similar to the query.
+    Optionally filter by topic_id and/or author_id.
     Returns list of {id, content, score, metadata}.
     """
     collection = _get_collection()
@@ -146,9 +187,15 @@ def search_similar(
     if not embeddings:
         return []
 
-    where_filter = None
-    if topic_id:
+    # Build where filter — ChromaDB requires $and for multiple conditions
+    if topic_id and author_id:
+        where_filter = {"$and": [{"topic_id": topic_id}, {"author_id": author_id}]}
+    elif topic_id:
         where_filter = {"topic_id": topic_id}
+    elif author_id:
+        where_filter = {"author_id": author_id}
+    else:
+        where_filter = None
 
     try:
         results = collection.query(
@@ -185,12 +232,13 @@ def backfill_from_db(db_session) -> int:
     Returns count of arguments indexed.
     """
     from app.models import ArgumentNode
+    from sqlalchemy.orm import joinedload
 
     collection = _get_collection()
     if collection is None:
         return 0
 
-    arguments = db_session.query(ArgumentNode).all()
+    arguments = db_session.query(ArgumentNode).options(joinedload(ArgumentNode.author)).all()
     if not arguments:
         return 0
 
@@ -211,6 +259,7 @@ def backfill_from_db(db_session) -> int:
                 "node_type": a.node_type.value if hasattr(a.node_type, 'value') else a.node_type,
                 "track_id": a.track_id or "",
                 "author_id": a.author_id or "",
+                "author_display_name": (a.author.display_name if a.author else "").lower(),
                 "parent_id": a.parent_id or "",
                 "content_preview": a.content[:200],
             }
