@@ -49,7 +49,10 @@ export function HomeRAGQuery() {
   }
 
   return (
-    <div className='bg-surface-1 border rounded-lg overflow-hidden' style={{ borderColor: 'rgba(191, 85, 123, 0.4)' }}>
+    <div
+      className='bg-surface-1 border rounded-lg overflow-hidden'
+      style={{ borderColor: 'rgba(191, 85, 123, 0.4)' }}
+    >
       {/* Header + form */}
       <div className='px-4 py-3'>
         <div className='flex items-center gap-2 mb-3'>
@@ -144,7 +147,10 @@ export function HomeRAGQuery() {
 
       {/* Result */}
       {result && (
-        <div className='border-t' style={{ borderColor: 'rgba(191, 85, 123, 0.3)' }}>
+        <div
+          className='border-t'
+          style={{ borderColor: 'rgba(191, 85, 123, 0.3)' }}
+        >
           <div className='px-4 py-3'>
             <div className='flex items-start justify-between gap-2 mb-2'>
               <div className='flex items-center gap-1.5'>

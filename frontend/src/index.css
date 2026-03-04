@@ -10,9 +10,9 @@
     --c-surface-2: 32 35 40; /* #202328  lifted card  */
     --c-surface-3: 44 48 56; /* #2c3038  hover/select */
     --c-surface-4: 36 32 72; /* #242048  kept for legacy */
-    --c-border: 95 50 68;            /* #5f3244  plum-tinted edge     */
-    --c-border-subtle: 58 36 48;     /* #3a2430  subtle plum seam     */
-    --c-border-hover: 148 72 104;    /* #944868  plum hover edge      */
+    --c-border: 50 44 58; /* #322c3a  neutral-warm edge     */
+    --c-border-subtle: 34 30 40; /* #221e28  barely-there seam     */
+    --c-border-hover: 78 68 92; /* #4e445c  warm hover edge       */
     --c-accent: 91 126 234; /* #5B7EEA  electric indigo */
     --c-accent-hover: 113 147 245; /* #7193F5  lighter hover   */
     --c-text-primary: 236 239 244; /* #eceff4                  */
@@ -30,9 +30,9 @@
     --c-surface-2: 246 248 250; /* #f6f8fa  nested panels            */
     --c-surface-3: 234 237 242; /* #eaedf2  deeper nesting           */
     --c-surface-4: 36 32 72;
-    --c-border: 200 170 183;        /* #c8aab7  plum-tinted card edge */
-    --c-border-subtle: 220 200 210; /* #dcc8d2  subtle plum seam     */
-    --c-border-hover: 170 115 143;  /* #aa738f  plum hover edge      */
+    --c-border: 210 205 215; /* #d2cdd7  neutral-warm card edge */
+    --c-border-subtle: 226 222 230; /* #e2dee6  subtle warm seam       */
+    --c-border-hover: 175 166 186; /* #afa6ba  warm hover edge        */
     --c-accent: 60 103 210; /* #3C67D2  darker for light bg      */
     --c-accent-hover: 42 82 188; /* #2A52BC  pressed                  */
     --c-text-primary: 18 20 24; /* #121418  near-black               */
