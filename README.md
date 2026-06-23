@@ -642,6 +642,7 @@ Detailed technical documentation is available in the [`docs/`](docs/) directory:
 
 | Document                               | Description                                                      |
 | -------------------------------------- | ---------------------------------------------------------------- |
+| [Core Engine](docs/core-engine.md)     | Platform objectives, progress metrics, assumptions, AI boundaries |
 | [Architecture](docs/architecture.md)   | System architecture, data flow, component relationships          |
 | [API Reference](docs/api-reference.md) | Complete endpoint reference with request/response schemas        |
 | [Data Model](docs/data-model.md)       | Database tables, enums, relationships, state machine             |
