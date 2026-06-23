@@ -1,6 +1,6 @@
 # API Reference
 
-> Complete endpoint reference for the Logora REST API.
+> Complete endpoint reference for the Crux REST API.
 
 Base URL: `http://localhost:8000/api`
 

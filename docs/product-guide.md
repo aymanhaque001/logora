@@ -1,16 +1,16 @@
-# Logora — Product Guide
+# Crux — Product Guide
 
 ### The Argument Intelligence Platform
 
-> _Reddit shows you what's popular. Logora shows you what's true._
+> _Reddit shows you what's popular. Crux shows you what's true._
 
 ---
 
-## What Is Logora?
+## What Is Crux?
 
-Logora is a platform where people debate ideas — and the debate actually goes somewhere.
+Crux is a platform where people debate ideas — and the debate actually goes somewhere.
 
-Instead of flat comment threads where the loudest voice wins, Logora maps every argument into a **structured knowledge graph**. AI classifies each contribution, detects when someone is repeating a point that's already been made, generates neutral summaries of where the debate stands, and lets anyone ask questions about a discussion and get grounded, citation-backed answers.
+Instead of flat comment threads where the loudest voice wins, Crux maps every argument into a **structured knowledge graph**. AI classifies each contribution, detects when someone is repeating a point that's already been made, generates neutral summaries of where the debate stands, and lets anyone ask questions about a discussion and get grounded, citation-backed answers.
 
 The result: debates that accumulate knowledge over time instead of going in circles.
 
@@ -26,7 +26,7 @@ Every discussion platform today has the same three failures:
 | **Popularity over quality** | Upvotes reward wit and timing, not depth and evidence                                  | A joke gets 5,000 upvotes; a sourced 500-word analysis gets 200      |
 | **Lost context**            | New participants have no idea what's been established, refuted, or left unresolved     | Joining a 2,000-comment thread and having to read everything         |
 
-**Logora fixes all three.** Arguments are typed and tracked. Duplicates are caught before posting. AI keeps a running summary. Newcomers get a personalized catch-up brief.
+**Crux fixes all three.** Arguments are typed and tracked. Duplicates are caught before posting. AI keeps a running summary. Newcomers get a personalized catch-up brief.
 
 ---
 
@@ -115,9 +115,9 @@ Type a natural language question about any debate and get a synthesized answer g
 
 > **You ask:** _"What are the main economic risks identified?"_
 >
-> **Logora answers:** _"Three economic risks have been identified across 14 arguments: (1) job displacement in the auto sector [supported by 3 arguments with sources], (2) decreased property values outside transit zones [one counter-argument notes this may reverse long-term], and (3) implementation costs exceeding $2B [unchallenged, flagged as needing more data]."_
+> **Crux answers:** _"Three economic risks have been identified across 14 arguments: (1) job displacement in the auto sector [supported by 3 arguments with sources], (2) decreased property values outside transit zones [one counter-argument notes this may reverse long-term], and (3) implementation costs exceeding $2B [unchallenged, flagged as needing more data]."_
 
-This works because Logora doesn't just search text — it traverses the argument graph to find structurally relevant context, then synthesizes it.
+This works because Crux doesn't just search text — it traverses the argument graph to find structurally relevant context, then synthesizes it.
 
 ### AI Briefing Room
 
@@ -146,7 +146,7 @@ Before you post, the system checks if your argument is too similar to an existin
 - An AI suggestion for how to differentiate your point
 - The option to proceed anyway, edit, or cancel
 
-This is how Logora prevents debates from going in circles.
+This is how Crux prevents debates from going in circles.
 
 ### Credibility System
 
@@ -171,7 +171,7 @@ The home page features:
 
 ### Discourse Tracks
 
-Large debates naturally split into sub-themes. Logora detects these automatically (or lets you create them manually):
+Large debates naturally split into sub-themes. Crux detects these automatically (or lets you create them manually):
 
 - _Economic impacts_
 - _Social equity concerns_
@@ -182,9 +182,9 @@ Each track has its own argument tree, and the briefing room summarizes each sepa
 
 ---
 
-## What Makes Logora Different
+## What Makes Crux Different
 
-| Feature                    | Reddit                | Twitter/X          | Kialo         | Slack            | **Logora**                            |
+| Feature                    | Reddit                | Twitter/X          | Kialo         | Slack            | **Crux**                            |
 | -------------------------- | --------------------- | ------------------ | ------------- | ---------------- | ------------------------------------- |
 | Argument structure         | Flat threads          | Flat threads       | Pro/Con tree  | Flat chat        | **8 typed nodes, 7 edge types**       |
 | Quality signal             | Upvotes (popularity)  | Likes/retweets     | Simple voting | None             | **Merit-based credibility**           |
@@ -248,7 +248,7 @@ Arguments can carry nuance markers that flag important qualifiers:
 
 ## The Technology (Brief)
 
-Logora is built with:
+Crux is built with:
 
 - **Backend:** FastAPI (Python) with SQLAlchemy ORM
 - **Frontend:** React + TypeScript with Tailwind CSS
@@ -281,9 +281,9 @@ Full technical documentation is available in the [docs/](../docs/) directory.
 
 ## Open Source
 
-Logora is open source and available at [github.com/aymanhaque001/logora](https://github.com/aymanhaque001/logora).
+Crux is open source and available at [github.com/aymanhaque001/crux](https://github.com/aymanhaque001/crux).
 
-Contributions welcome. See the [GitHub Issues](https://github.com/aymanhaque001/logora/issues) for the roadmap.
+Contributions welcome. See the [GitHub Issues](https://github.com/aymanhaque001/crux/issues) for the roadmap.
 
 ---
 

@@ -52,11 +52,11 @@ style: |
 
 <!-- _class: lead invert -->
 
-# **Logora**
+# **Crux**
 
 ### The Argument Intelligence Platform
 
-_Reddit shows you what's popular. Logora shows you what's true._
+_Reddit shows you what's popular. Crux shows you what's true._
 
 <br>
 
@@ -95,7 +95,7 @@ Every day, **critical decisions** are made through unstructured debate.
 
 # The Solution
 
-## Logora turns unstructured human disagreement into a searchable, AI-analyzed knowledge graph
+## Crux turns unstructured human disagreement into a searchable, AI-analyzed knowledge graph
 
 <br>
 
@@ -136,7 +136,7 @@ _"What's the strongest argument against expansion?"_
 
 **User asks:** _"What are the main risks of Option B?"_
 
-**Logora answers:**
+**Crux answers:**
 
 > Based on 23 arguments across 3 discourse tracks, the primary risks identified are: (1) regulatory uncertainty in the EU market [supported by 4 arguments, 2 with sources], (2) supply chain fragmentation [challenged by 1 counter-argument citing recent trade agreements], and (3) talent acquisition costs [unchallenged, flagged as needing more analysis].
 
@@ -243,7 +243,7 @@ User submits argument
 
 ### Phase 1: Enterprise (Months 1-6)
 
-**"Logora Teams"** — Private workspaces for team decision-making
+**"Crux Teams"** — Private workspaces for team decision-making
 
 | Tier       | Price       | Target                                      |
 | ---------- | ----------- | ------------------------------------------- |
@@ -273,7 +273,7 @@ User submits argument
 
 # Competitive Landscape
 
-|                    | Kialo         | Pol.is          | Reddit             | Slack | **Logora**      |
+|                    | Kialo         | Pol.is          | Reddit             | Slack | **Crux**      |
 | ------------------ | ------------- | --------------- | ------------------ | ----- | --------------- |
 | Argument types     | Pro/Con       | None            | None               | None  | **8 types**     |
 | AI analysis        | ❌            | ❌              | ❌                 | ❌    | **✅**          |
@@ -296,7 +296,7 @@ User submits argument
 - ✅ **Graph RAG pipeline** — ChromaDB + graph expansion + Claude synthesis
 - ✅ **6 AI functions** — Classification, briefings, duplicate detection, catch-up, summarization, track detection
 - ✅ **16 React components** — Argument graph, briefing room, analytics, news ticker
-- ✅ **Open source** — github.com/aymanhaque001/logora
+- ✅ **Open source** — github.com/aymanhaque001/crux
 - 🎯 **Next:** 3-5 enterprise pilot customers in 90 days
 
 ---
@@ -324,7 +324,7 @@ User submits argument
 ### **Ayman Haque** — Founder & Builder
 
 - Full-stack engineer: Python, TypeScript, React, AI/ML
-- Built Logora end-to-end: backend, frontend, AI pipeline, Graph RAG
+- Built Crux end-to-end: backend, frontend, AI pipeline, Graph RAG
 - Designed the typed argumentation model and discourse health system
 
 <br>
@@ -362,7 +362,7 @@ User submits argument
 
 <!-- _class: lead invert -->
 
-# **Logora**
+# **Crux**
 
 ### Turning disagreement into intelligence.
 
@@ -370,12 +370,12 @@ User submits argument
 
 _"Reddit shows you what's popular._
 _ChatGPT forgets what you said._
-_Logora accumulates, structures, and lets you query_
+_Crux accumulates, structures, and lets you query_
 _the collective reasoning of every participant."_
 
 <br>
 
-**ayman@logora.io** · github.com/aymanhaque001/logora
+**ayman@crux.io** · github.com/aymanhaque001/crux
 
 ---
 

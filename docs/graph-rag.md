@@ -1,12 +1,12 @@
 # Graph RAG
 
-> Technical documentation for Logora's hybrid Graph RAG pipeline: vector store, graph traversal, duplicate detection, and retrieval-augmented generation.
+> Technical documentation for Crux's hybrid Graph RAG pipeline: vector store, graph traversal, duplicate detection, and retrieval-augmented generation.
 
 ---
 
 ## Overview
 
-Logora's RAG system is a **hybrid retrieval pipeline** that combines two complementary search strategies:
+Crux's RAG system is a **hybrid retrieval pipeline** that combines two complementary search strategies:
 
 1. **Vector similarity search** (ChromaDB) — finds semantically similar arguments by embedding content
 2. **Graph expansion** (BFS on argument graph) — discovers structurally related arguments by traversing parent/child/edge relationships
@@ -65,7 +65,7 @@ User Query / Content
 
 | Setting              | Value              |
 | -------------------- | ------------------ |
-| Collection name      | `logora_arguments` |
+| Collection name      | `crux_arguments` |
 | Embedding model      | `all-MiniLM-L6-v2` |
 | Embedding dimensions | 384                |
 | Distance metric      | Cosine             |

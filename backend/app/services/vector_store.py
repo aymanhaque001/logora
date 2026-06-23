@@ -10,7 +10,7 @@ _collection = None
 _embedding_model = None
 _init_error = None
 
-COLLECTION_NAME = "logora_arguments"
+COLLECTION_NAME = "crux_arguments"
 EMBEDDING_MODEL_NAME = "all-MiniLM-L6-v2"  # Fast, 384-dim, good for semantic search
 
 

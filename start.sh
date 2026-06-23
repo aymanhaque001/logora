@@ -26,7 +26,7 @@ FRONTEND_PID=$!
 trap "echo 'Stopping...'; kill $BACKEND_PID $FRONTEND_PID 2>/dev/null; exit 0" INT TERM
 
 echo ""
-echo "Logora running:"
+echo "Crux running:"
 echo "  Frontend → http://localhost:5173"
 echo "  Backend  → http://localhost:8000"
 echo "  API docs → http://localhost:8000/docs"

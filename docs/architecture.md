@@ -1,10 +1,10 @@
 # Architecture
 
-> System architecture, data flow, and component relationships for Logora.
+> System architecture, data flow, and component relationships for Crux.
 
 ## Overview
 
-Logora is a three-tier application: a React SPA frontend, a FastAPI backend, and two data stores (SQLite for relational data, ChromaDB for vector embeddings). All AI features are powered by Claude via the Anthropic SDK and degrade gracefully when no API key is configured.
+Crux is a three-tier application: a React SPA frontend, a FastAPI backend, and two data stores (SQLite for relational data, ChromaDB for vector embeddings). All AI features are powered by Claude via the Anthropic SDK and degrade gracefully when no API key is configured.
 
 ---
 
@@ -69,10 +69,10 @@ Logora is a three-tier application: a React SPA frontend, a FastAPI backend, and
             ▼                                  ▼
    ┌──────────────────┐              ┌───────────────────┐
    │   SQLite          │              │  ChromaDB          │
-   │   logora.db       │              │  ./chroma_data/    │
+   │   crux.db       │              │  ./chroma_data/    │
    │                   │              │                    │
    │   users           │              │  Collection:       │
-   │   topics          │              │  logora_arguments  │
+   │   topics          │              │  crux_arguments  │
    │   discourse_tracks│              │                    │
    │   argument_nodes  │              │  Model:            │
    │   argument_edges  │              │  all-MiniLM-L6-v2  │
@@ -232,7 +232,7 @@ All auth-required endpoints:
   → auth.get_current_user() dependency → decode JWT → load user from DB
 ```
 
-JWT tokens are signed with `SECRET_KEY` using the `HS256` algorithm. Tokens contain the user ID in the `sub` claim. Frontend stores tokens in `localStorage` under the key `logora_token` and attaches them via an axios request interceptor.
+JWT tokens are signed with `SECRET_KEY` using the `HS256` algorithm. Tokens contain the user ID in the `sub` claim. Frontend stores tokens in `localStorage` under the key `crux_token` and attaches them via an axios request interceptor.
 
 ---
 
@@ -255,7 +255,7 @@ JWT tokens are signed with `SECRET_KEY` using the `HS256` algorithm. Tokens cont
 
 ## Graceful Degradation
 
-Logora is designed to work at multiple capability levels:
+Crux is designed to work at multiple capability levels:
 
 | Level         | AI  | ChromaDB | DuckDuckGo | Experience                                                                                    |
 | ------------- | --- | -------- | ---------- | --------------------------------------------------------------------------------------------- |

@@ -6,7 +6,7 @@
 
 ## Overview
 
-The Logora frontend is a React 18 SPA built with TypeScript, Vite, and Tailwind CSS. Data fetching uses TanStack React Query with axios. Graph visualization uses ReactFlow with dagre for automatic layout.
+The Crux frontend is a React 18 SPA built with TypeScript, Vite, and Tailwind CSS. Data fetching uses TanStack React Query with axios. Graph visualization uses ReactFlow with dagre for automatic layout.
 
 **Design System:**
 
@@ -386,7 +386,7 @@ Client-side auth state using React `useState` + `localStorage`:
 const { user, token, login, register, logout, loading } = useAuth()
 ```
 
-- `token` stored in `localStorage` as `logora_token`
+- `token` stored in `localStorage` as `crux_token`
 - Axios interceptor auto-attaches `Authorization: Bearer <token>` header
 - `loading` state prevents flash of login page on refresh
 - `user` fetched via `GET /users/me` on mount if token exists

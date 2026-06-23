@@ -8,7 +8,7 @@ from app.config import settings
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI(
-    title="Logora API",
+    title="Crux API",
     description="Fact-based structured debate platform",
     version="0.1.0",
 )

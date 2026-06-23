@@ -15,7 +15,7 @@ except ImportError:
     print("[WebSearch] duckduckgo-search not installed — web suggestions disabled.", file=sys.stderr)
 
 
-# Search categories that map to Logora's topic tags
+# Search categories that map to Crux's topic tags
 SEARCH_QUERIES = {
     "geopolitical": [
         "geopolitical conflict debate 2025",
@@ -131,7 +131,7 @@ def _frame_as_debates(articles: list[dict], max_suggestions: int) -> list[dict]:
     if not is_available():
         return _stub_frame(articles, max_suggestions)
 
-    system = """You are a debate topic curator for a structured, evidence-based debate platform called Logora.
+    system = """You are a debate topic curator for a structured, evidence-based debate platform called Crux.
 Your job is to identify debatable questions from recent news articles.
 
 Rules:

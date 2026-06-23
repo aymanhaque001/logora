@@ -1,4 +1,4 @@
-# Crux/Logora — Cost Analysis per 100 Users/Month
+# Crux — Cost Analysis per 100 Users/Month
 
 > Generated March 3, 2026. Model: `claude-sonnet-4-6`. Pricing: **$3/M input tokens, $15/M output tokens**.
 

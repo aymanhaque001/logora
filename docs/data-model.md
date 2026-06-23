@@ -2,7 +2,7 @@
 
 > Database tables, enums, relationships, and state machine documentation.
 
-Logora uses **SQLAlchemy 2.0** with SQLite. All models are in `backend/app/models.py`.
+Crux uses **SQLAlchemy 2.0** with SQLite. All models are in `backend/app/models.py`.
 
 ---
 

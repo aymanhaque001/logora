@@ -2,7 +2,7 @@ from pydantic_settings import BaseSettings
 
 
 class Settings(BaseSettings):
-    DATABASE_URL: str = "sqlite:///./logora.db"
+    DATABASE_URL: str = "sqlite:///./crux.db"
     SECRET_KEY: str = "dev-secret-key-change-in-production"
     ANTHROPIC_API_KEY: str = ""
     CLAUDE_MODEL: str = "claude-haiku-4-5"

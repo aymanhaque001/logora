@@ -8,17 +8,17 @@
   <img src="https://img.shields.io/badge/Tailwind_CSS-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white" />
 </p>
 
-# Logora
+# Crux
 
 **A structured debate platform and knowledge base — so people don't argue in circles.**
 
-Logora models debates as directed graphs of typed arguments, not flat comment threads. Arguments branch, synthesize, get challenged, and reach resolution. AI classifies contributions, detects patterns, and generates neutral briefings. A hybrid Graph RAG system provides semantic search across arguments, detects duplicate/rehashed points, and answers analytical questions about any debate. The result is a living repository where newcomers can see what's been established, what's contested, and where they can most usefully contribute.
+Crux models debates as directed graphs of typed arguments, not flat comment threads. Arguments branch, synthesize, get challenged, and reach resolution. AI classifies contributions, detects patterns, and generates neutral briefings. A hybrid Graph RAG system provides semantic search across arguments, detects duplicate/rehashed points, and answers analytical questions about any debate. The result is a living repository where newcomers can see what's been established, what's contested, and where they can most usefully contribute.
 
 ---
 
 ## Table of Contents
 
-- [Why Logora?](#why-logora)
+- [Why Crux?](#why-crux)
 - [Core Concepts](#core-concepts)
 - [Features](#features)
 - [Architecture](#architecture)
@@ -35,7 +35,7 @@ Logora models debates as directed graphs of typed arguments, not flat comment th
 
 ---
 
-## Why Logora?
+## Why Crux?
 
 Online debates suffer from three problems:
 
@@ -43,7 +43,7 @@ Online debates suffer from three problems:
 2. **Lost context** — newcomers have no idea what's already been said
 3. **Flat structure** — comment threads don't capture the actual logical structure of a debate
 
-Logora solves these by treating debates as **knowledge graphs** instead of comment threads. Every argument is a typed node (assertion, counter, qualification, synthesis, etc.) connected by typed edges (supports, challenges, qualifies, refines). AI classifies contributions, generates neutral summaries, and identifies gaps. A **Graph RAG** pipeline backed by ChromaDB merges vector similarity with graph traversal to catch duplicates before they're posted and answer complex queries about the state of any debate. The debate becomes a persistent, structured knowledge base that grows more useful over time.
+Crux solves these by treating debates as **knowledge graphs** instead of comment threads. Every argument is a typed node (assertion, counter, qualification, synthesis, etc.) connected by typed edges (supports, challenges, qualifies, refines). AI classifies contributions, generates neutral summaries, and identifies gaps. A **Graph RAG** pipeline backed by ChromaDB merges vector similarity with graph traversal to catch duplicates before they're posted and answer complex queries about the state of any debate. The debate becomes a persistent, structured knowledge base that grows more useful over time.
 
 ---
 
@@ -88,7 +88,7 @@ Any state ──→ dormant (30 days inactive) ──→ engaged (re-engaged)
 
 ### Currents (Discourse Tracks)
 
-Debates naturally fragment into sub-themes. Logora organizes these into **currents** — thematic threads that emerge organically from the arguments. When you submit an argument, Claude analyzes it in context of the debate question and existing currents, then assigns it to an existing current or creates a new one.
+Debates naturally fragment into sub-themes. Crux organizes these into **currents** — thematic threads that emerge organically from the arguments. When you submit an argument, Claude analyzes it in context of the debate question and existing currents, then assigns it to an existing current or creates a new one.
 
 Current names are always substantive and topic-specific (e.g., "Saudi Arabia normalization and whitewashing", "Mueller investigation and evidentiary standards") — never generic labels like "Pro" or "Con". A **re-discover** button lets you trigger full AI re-analysis at any time, which examines all arguments and identifies emergent thematic currents.
 
@@ -126,7 +126,7 @@ This runs without AI too — the system falls back to computed statistics when n
 
 ### Graph RAG
 
-Logora uses a **hybrid retrieval-augmented generation** pipeline that combines vector similarity search with graph traversal:
+Crux uses a **hybrid retrieval-augmented generation** pipeline that combines vector similarity search with graph traversal:
 
 1. **Vector Search** — ChromaDB indexes all arguments with `all-MiniLM-L6-v2` embeddings (384-dim). Cosine similarity finds semantically related arguments.
 2. **Graph Expansion** — Starting from vector hits, BFS walks the argument graph (parent chains, children, edges) up to 2 hops, surfacing structurally related context.
@@ -235,7 +235,7 @@ This powers three features:
             ▼                                  ▼
    ┌──────────────────┐              ┌───────────────────┐
    │   SQLite (local) │              │  ChromaDB (local)  │
-   │   logora.db      │              │  ./chroma_data/    │
+   │   crux.db      │              │  ./chroma_data/    │
    │   relational     │              │  384-dim vectors   │
    │   data           │              │  cosine distance   │
    └──────────────────┘              └───────────────────┘
@@ -290,8 +290,8 @@ This powers three features:
 ### Clone the Repository
 
 ```bash
-git clone https://github.com/aymanhaque001/logora.git
-cd logora
+git clone https://github.com/aymanhaque001/crux.git
+cd crux
 ```
 
 ### Backend Setup
@@ -314,7 +314,7 @@ cp .env.example .env
 Edit `backend/.env` with your values:
 
 ```env
-DATABASE_URL=sqlite:///./logora.db
+DATABASE_URL=sqlite:///./crux.db
 SECRET_KEY=your-secret-key-here          # any random string for JWT signing
 ANTHROPIC_API_KEY=sk-ant-...             # optional — leave empty for stub mode
 CLAUDE_MODEL=claude-sonnet-4-6
@@ -372,7 +372,7 @@ Frontend starts at `http://localhost:5173`.
 
 ### Verify It's Working
 
-- Open `http://localhost:5173` — you should see the Logora login page
+- Open `http://localhost:5173` — you should see the Crux login page
 - Open `http://localhost:8000/docs` — interactive Swagger API docs
 - Hit `http://localhost:8000/api/health` — should show status of AI, vector store, and web search
 
@@ -439,7 +439,7 @@ Or trigger from code — the vector store automatically indexes new arguments on
 ## Project Structure
 
 ```
-logora/
+crux/
 ├── start.sh                         # Start both servers
 ├── .gitignore
 │
@@ -609,7 +609,7 @@ All configuration is via environment variables in `backend/.env`:
 
 | Variable            | Required | Default                 | Description                              |
 | ------------------- | :------: | ----------------------- | ---------------------------------------- |
-| `DATABASE_URL`      |    No    | `sqlite:///./logora.db` | SQLAlchemy database URL                  |
+| `DATABASE_URL`      |    No    | `sqlite:///./crux.db` | SQLAlchemy database URL                  |
 | `SECRET_KEY`        | **Yes**  | —                       | Secret key for JWT token signing         |
 | `ANTHROPIC_API_KEY` |    No    | `""`                    | Anthropic API key for Claude AI features |
 | `CLAUDE_MODEL`      |    No    | `claude-sonnet-4-6`     | Claude model to use                      |
@@ -652,25 +652,25 @@ Detailed technical documentation is available in the [`docs/`](docs/) directory:
 
 ## Roadmap
 
-See the [GitHub Issues](https://github.com/aymanhaque001/logora/issues) for the full planned feature set, organized by priority tier:
+See the [GitHub Issues](https://github.com/aymanhaque001/crux/issues) for the full planned feature set, organized by priority tier:
 
 ### Tier 1 — Prevents Circular Debate
 
-- ~~[#1 Duplicate / Rehash Detection](https://github.com/aymanhaque001/logora/issues/1)~~ ✅ — Graph RAG-powered duplicate detection with similarity thresholds and Claude reasoning
-- ~~[#2 Newcomer "Catch Up" Briefing](https://github.com/aymanhaque001/logora/issues/2)~~ ✅ — AI-generated catch-up with established/refuted points, active debates, contribution opportunities
-- [#3 Consensus / Resolution Markers](https://github.com/aymanhaque001/logora/issues/3) — mark branches as resolved to signal settled ground
+- ~~[#1 Duplicate / Rehash Detection](https://github.com/aymanhaque001/crux/issues/1)~~ ✅ — Graph RAG-powered duplicate detection with similarity thresholds and Claude reasoning
+- ~~[#2 Newcomer "Catch Up" Briefing](https://github.com/aymanhaque001/crux/issues/2)~~ ✅ — AI-generated catch-up with established/refuted points, active debates, contribution opportunities
+- [#3 Consensus / Resolution Markers](https://github.com/aymanhaque001/crux/issues/3) — mark branches as resolved to signal settled ground
 
 ### Tier 2 — Improves Debate Quality
 
-- [#4 Steel-Man Prompts](https://github.com/aymanhaque001/logora/issues/4) — require understanding of opposing view before rebutting
-- [#5 Cross-Topic Knowledge Graph](https://github.com/aymanhaque001/logora/issues/5) — link related arguments across debates
-- [#6 Gap Analysis](https://github.com/aymanhaque001/logora/issues/6) — AI identifies unsupported claims and unanswered challenges
+- [#4 Steel-Man Prompts](https://github.com/aymanhaque001/crux/issues/4) — require understanding of opposing view before rebutting
+- [#5 Cross-Topic Knowledge Graph](https://github.com/aymanhaque001/crux/issues/5) — link related arguments across debates
+- [#6 Gap Analysis](https://github.com/aymanhaque001/crux/issues/6) — AI identifies unsupported claims and unanswered challenges
 
 ### Tier 3 — Engagement & Incentives
 
-- [#7 Progression-Based Credibility](https://github.com/aymanhaque001/logora/issues/7) — reward novelty over volume
-- [#8 Endorsement System](https://github.com/aymanhaque001/logora/issues/8) — "this represents my view" instead of "+1" comments
-- [#9 Debate Digest / Export](https://github.com/aymanhaque001/logora/issues/9) — generate shareable "Wikipedia article" from any debate
+- [#7 Progression-Based Credibility](https://github.com/aymanhaque001/crux/issues/7) — reward novelty over volume
+- [#8 Endorsement System](https://github.com/aymanhaque001/crux/issues/8) — "this represents my view" instead of "+1" comments
+- [#9 Debate Digest / Export](https://github.com/aymanhaque001/crux/issues/9) — generate shareable "Wikipedia article" from any debate
 
 ---
 

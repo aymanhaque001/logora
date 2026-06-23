@@ -1,5 +1,5 @@
 """
-Expanded seed data for Logora — 10 topics with 100+ arguments total.
+Expanded seed data for Crux — 10 topics with 100+ arguments total.
 Includes geopolitical, tech, social, and policy debates.
 Run: cd backend && source venv/bin/activate && python seed_expanded.py
 """
@@ -653,7 +653,7 @@ users_count = db.query(User).count()
 edges = db.query(ArgumentEdge).count()
 
 print(f"\n{'='*60}")
-print(f"  Logora Seed Data Loaded Successfully!")
+print(f"  Crux Seed Data Loaded Successfully!")
 print(f"{'='*60}")
 print(f"  Users:     {users_count}")
 print(f"  Topics:    {topics}")
